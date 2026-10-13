@@ -1,0 +1,2433 @@
+<!DOCTYPE html><html lang="ko"><head><meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/><title>WBS 일정표 템플릿</title>
+<!-- WBS 일정표 템플릿 · © 2026 crazy4eu (cwkim83) · 라이선스는 LICENSE 파일 참고 -->
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{margin:0;padding:0}
+#app{position:relative;height:100vh;min-height:600px;overflow:hidden;display:flex;background:#f0f4f8;font-family:'Segoe UI',Arial,sans-serif}
+::-webkit-scrollbar{width:5px;height:5px}::-webkit-scrollbar-thumb{background:#c4cdd8;border-radius:3px}
+.sb{height:100%;background:#fff;border-right:1px solid #e4e7ec;display:flex;flex-direction:column;overflow:hidden;transition:width .25s;flex-shrink:0}
+.nav-b{display:flex;align-items:center;gap:7px;width:100%;padding:8px 12px;background:transparent;color:#4b5563;border:none;cursor:pointer;border-radius:6px;font-size:11px;text-align:left;transition:background .1s}
+.nav-b:hover{background:#f0f4f9}.nav-b.on{background:#eef3fb;color:#4a7fc1;font-weight:700;border-left:3px solid #4a7fc1;padding-left:9px}
+.ti{display:flex;align-items:center;gap:5px;padding:4px 10px;cursor:pointer;border-radius:5px;margin:1px 4px;font-size:10px;color:#4b5563;white-space:nowrap;overflow:hidden;transition:background .1s}
+.ti:hover{background:#f0f4f9}.ti.on{background:#eef3fb;color:#4a7fc1;font-weight:600}
+.sb-tree{flex:1;overflow-y:auto;padding:0 4px;min-height:0}
+.tgl{position:absolute;top:50%;transform:translateY(-50%);width:15px;height:42px;background:#4a7fc1;color:#fff;border:none;border-radius:0 5px 5px 0;cursor:pointer;font-size:10px;z-index:20;transition:left .25s}
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
+.thdr{background:#fff;border-bottom:1px solid #e4e7ec;min-height:52px;display:flex;align-items:center;flex-wrap:wrap;padding:6px 14px;gap:6px 8px;flex-shrink:0}
+.htitle{font-size:13px;font-weight:700;color:#1a2332;margin-right:auto}
+.vb{padding:4px 9px;border-radius:5px;border:1px solid #e4e7ec;background:#fff;color:#6b7280;font-size:11px;cursor:pointer}
+.vb.on{background:#4a7fc1;color:#fff;border-color:#4a7fc1}
+.addb{padding:4px 11px;background:#4a7fc1;color:#fff;border:none;border-radius:5px;font-size:11px;cursor:pointer;font-weight:600}
+.fbar{background:#fff;border-bottom:1px solid #e4e7ec;padding:5px 14px;display:flex;gap:4px;align-items:center;flex-shrink:0}
+.fb{padding:3px 8px;border-radius:5px;border:1px solid #e4e7ec;background:#fff;color:#6b7280;font-size:10px;cursor:pointer}
+.fb.on{background:#4a7fc1;color:#fff;border-color:#4a7fc1;font-weight:700}
+.cont{flex:1;overflow:hidden;display:flex;flex-direction:column;padding:7px}
+.pg{padding:14px;overflow-y:auto;flex:1}
+table{width:100%;border-collapse:collapse}
+th{padding:7px 8px;font-size:10px;font-weight:700;color:#6b7280;text-align:left;border-bottom:1px solid #e4e7ec;background:#f8fafc;white-space:nowrap;position:sticky;top:0;z-index:5}
+td{padding:0 6px;border-bottom:1px solid #f0f4f8;font-size:11px;height:30px}
+tr:hover td{background:#f9fafb}
+tr.sel td{background:#dbeafe!important;box-shadow:inset 0 -1px 0 #93c5fd,inset 0 1px 0 #93c5fd}tr.sel td:first-child{box-shadow:inset 4px 0 0 #2563eb,inset 0 -1px 0 #93c5fd,inset 0 1px 0 #93c5fd}tr.sel td .cell-inner{font-weight:700}
+.crd{background:#fff;border-radius:8px;padding:14px;margin-bottom:8px;border:1px solid #e4e7ec;cursor:pointer;transition:box-shadow .12s}
+.crd:hover{box-shadow:0 2px 8px rgba(0,0,0,.08)}
+.bdg{display:inline-flex;padding:1px 6px;border-radius:6px;font-size:10px;font-weight:700}
+.ptb{display:inline-flex;padding:1px 5px;border-radius:3px;font-size:10px;font-weight:800;border:1px solid}
+.prg{display:flex;align-items:center;gap:5px}
+.pb{flex:1;height:5px;border-radius:3px;background:#e4e7ec;overflow:hidden}
+.pf{height:100%;border-radius:3px;transition:width .4s}
+.pv{font-size:10px;color:#6b7280;min-width:24px;text-align:right}
+.ir{padding:7px 11px;border-bottom:1px solid #f0f4f8;cursor:pointer;border-left:3px solid transparent}
+.ir:hover{background:#f9fafb}.ir.sel{background:#dbeafe;border-left-color:#2563eb;border-left-width:4px;font-weight:700}
+.split-w{display:flex;flex:1;overflow:hidden}
+/* v29.9: 옛 3분할 뷰 클래스 (.tpn/.gpn/.spn) 는 어디에서도 사용 안 됨 — 통합 테이블로 대체됨. 제거. */
+.mrow{display:flex;background:#f8fafc;border-bottom:1px solid #e4e7ec;position:sticky;top:0;z-index:5}
+.mcl{flex:1;padding:6px 0;text-align:center;font-size:9px;font-weight:600;color:#6b7280;border-left:1px solid #e4e7ec;min-width:30px}
+.mcl:first-child{border-left:none}
+.dpnl{flex-shrink:0;background:#fff;border:1.5px solid #c3d6f0;border-radius:10px;padding:10px 16px;margin-top:6px;max-height:34vh;overflow-y:auto}
+.dpnl-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.dpnl-code{font-size:11px;font-weight:700;color:#4a7fc1;background:#eef3fb;padding:2px 8px;border-radius:4px;margin-right:8px}
+.dpnl-name{font-size:14px;font-weight:700;color:#1a2332}
+.dpnl-actions{display:flex;gap:6px;align-items:center}
+.edit-btn{padding:4px 12px;background:#4a7fc1;color:#fff;border:none;border-radius:5px;font-size:11px;cursor:pointer;font-weight:600}
+.edit-btn:hover{background:#3a6bb5}
+.close-btn{width:24px;height:24px;background:none;border:none;cursor:pointer;color:#9ca3af;font-size:16px;border-radius:4px;display:flex;align-items:center;justify-content:center}
+.close-btn:hover{background:#f0f4f8;color:#4b5563}
+.dpnl-fields{display:flex;gap:8px}
+.dpnl-field{flex:1;background:#f8fafc;border-radius:6px;border:1px solid #e4e7ec;padding:7px 10px;min-width:80px}
+.dpnl-field-lbl{font-size:10px;color:#9ca3af;margin-bottom:3px}
+.dpnl-field-val{font-size:12px;font-weight:700;color:#1a2332}
+.dpnl-input{width:100%;background:#fff;border:1px solid #c3d6f0;border-radius:4px;padding:3px 6px;font-size:11px;font-weight:600;color:#1a2332;outline:none}
+.dpnl-input:focus{border-color:#4a7fc1}
+.dpnl-select{width:100%;background:#fff;border:1px solid #c3d6f0;border-radius:4px;padding:3px 4px;font-size:11px;font-weight:600;color:#1a2332;outline:none;cursor:pointer}
+.save-btn{padding:4px 12px;background:#16a34a;color:#fff;border:none;border-radius:5px;font-size:11px;cursor:pointer;font-weight:600}
+.save-btn:hover{background:#15803d}
+.ov{position:absolute;inset:0;background:rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;z-index:50}
+.mdl{background:#fff;border-radius:10px;padding:18px;width:400px;box-shadow:0 6px 20px rgba(0,0,0,.14)}
+.fl{font-size:11px;color:#6b7280;margin-bottom:2px}
+.fi{width:100%;padding:5px 7px;border:1px solid #e4e7ec;border-radius:5px;font-size:11px;outline:none;font-family:inherit}
+.fi:focus{border-color:#4a7fc1}
+.sdot{display:inline-block;width:6px;height:6px;border-radius:50%;background:#16a34a;margin-right:3px;animation:pulse 2s infinite;flex-shrink:0}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+.bc-b{color:#4a7fc1;background:none;border:none;cursor:pointer;font-size:11px;padding:0}
+.sb-log{padding:8px 10px;border-top:1px solid #e4e7ec;background:#f8fafc;flex-shrink:0}
+.sb-log-item{font-size:9px;padding:2px 5px;border-radius:3px;margin-bottom:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:1.4}
+/* ─── v28.0 패치 전용 클래스 (원본 UI 보존, 추가만) ─── */
+.v28-eb{padding:3px 9px;border-radius:5px;border:1px solid #e4e7ec;background:#fff;color:#4a7fc1;font-size:10px;cursor:pointer;font-weight:600;margin-left:4px}
+.v28-eb:hover{background:#eef3fb}
+.v28-cal-wrap{display:flex;flex:1;overflow:hidden}
+.v28-cal-left{flex-shrink:0;background:#fff;position:sticky;left:0;z-index:6;border-right:2px solid #e4e7ec;box-shadow:2px 0 4px -2px rgba(0,0,0,.05)}
+.v28-cal-scroll{flex:1;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch}
+.v28-cal-right{flex-shrink:0;background:#fff;position:sticky;right:0;z-index:6;border-left:2px solid #e4e7ec;box-shadow:-2px 0 4px -2px rgba(0,0,0,.05);width:46px}
+.v28-mhdr{display:flex;background:#f8fafc;border-bottom:1px solid #e4e7ec;min-width:max-content;height:29px}
+.v28-mcl{flex-shrink:0;height:28px;display:flex;align-items:center;justify-content:center;text-align:center;font-size:10px;font-weight:600;color:#6b7280;border-left:1px solid #e4e7ec;white-space:nowrap}
+.v28-mcl:first-child{border-left:none}
+.v28-mcl-year{background:#eef3fb;color:#4a7fc1;font-weight:700}
+.v28-bar-outer{position:absolute;height:100%;background:#e5e7eb;border-radius:3px;overflow:hidden}
+.v28-bar-fill{height:100%;background:#16a34a;transition:width .4s}
+.v28-bar-label{position:absolute;left:0;right:0;text-align:center;font-size:9px;color:#1a2332;font-weight:700;white-space:nowrap;z-index:2;pointer-events:none;line-height:20px}
+/* v30: 간트 메모 콜아웃 — 막대 클릭 시 말풍선, 우클릭으로 작성 */
+.v28-bar-outer.has-memo{cursor:pointer}
+.v28-bar-outer.has-memo:hover{filter:brightness(1.07);box-shadow:0 0 0 2px rgba(220,38,38,.25)}
+.v28-memo-dot{position:absolute;top:-4px;width:13px;height:13px;background:#dc2626;border:1.5px solid #fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:7px;color:#fff;z-index:6;box-shadow:0 1px 3px rgba(0,0,0,.25);transform:translateX(-50%);cursor:grab}
+.v28-memo-dot:hover{box-shadow:0 0 0 3px rgba(220,38,38,.25),0 1px 3px rgba(0,0,0,.25)}
+.v28-memo-dot:active{cursor:grabbing}
+.v28-memo-line{position:absolute;z-index:5;pointer-events:none;overflow:visible}
+.v28-memo-co{position:absolute;width:200px;background:#fff;border:1.5px solid #dc2626;border-radius:7px;box-shadow:0 6px 18px rgba(0,0,0,.22);z-index:5;font-size:10.5px;cursor:default;animation:v28memopop .15s ease-out}
+@keyframes v28memopop{from{opacity:0;transform:scale(.93)}to{opacity:1;transform:scale(1)}}
+.v28-memo-co .co-hd{display:flex;align-items:center;gap:4px;padding:4px 7px;background:#fef2f2;border-bottom:1px solid #fecaca;border-radius:6px 6px 0 0;font-weight:800;color:#b91c1c;font-size:10px;cursor:move;user-select:none}
+.v28-memo-co.dragging{opacity:.85;box-shadow:0 10px 28px rgba(0,0,0,.35)}
+.v28-memo-co .co-hd .t{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.v28-memo-co .co-hd button{border:none;background:#fee2e2;color:#dc2626;border-radius:3px;cursor:pointer;font-size:9px;padding:1px 5px;flex-shrink:0;line-height:1.4}
+.v28-memo-co .co-hd button:hover{background:#dc2626;color:#fff}
+.v28-memo-co .co-bd{padding:6px 8px;color:#1f2937;line-height:1.5;white-space:pre-wrap;word-break:break-word}
+@media print{.v28-memo-co,.v28-memo-line,.v28-memo-dot{display:none!important}}
+.v28-wsum{flex-shrink:0;background:#fffdf5;border:1.5px solid #f6d76a;border-radius:10px;padding:10px 14px;margin-top:6px;margin-bottom:6px}
+.v28-wsum-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;border-bottom:1px solid #f0e5b8;padding-bottom:6px}
+.v28-wsum-title{font-size:12px;font-weight:700;color:#92732e;display:flex;align-items:center;gap:6px}
+.v28-wsum-meta{font-size:10px;color:#a08a4a}
+.v28-wsum-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.v28-wsum-sec{background:#fff;border-radius:6px;padding:7px 10px;border:1px solid #f0e5b8}
+.v28-wsum-sec-ttl{font-size:10px;font-weight:700;margin-bottom:5px;display:flex;align-items:center;gap:4px}
+.v28-wsum-it{font-size:10px;color:#4b5563;padding:2px 0;line-height:1.5}
+.v28-wsum-list{max-height:56px;overflow-y:auto;padding-right:3px}
+.v28-wsum-list::-webkit-scrollbar{width:5px}.v28-wsum-list::-webkit-scrollbar-thumb{background:#e5d98a;border-radius:3px}
+.v28-wsum-em{font-size:10px;color:#9ca3af;font-style:italic}
+.v28-rem{width:42px;text-align:center;padding:0;border-left:1px solid #f0f4f8}
+/* ─── v28.4.17 ★ 통합 WBS Table — 사용자 발상: 하나의 table에 모든 컬럼, CSS로 보이기/숨기기 ─── */
+.wbs-unified-wrap{position:relative;overflow:auto;background:#fff;border-radius:8px;border:1px solid #e4e7ec;max-height:calc(100vh - 280px)}
+.wbs-unified-tbl{border-collapse:collapse!important;border-spacing:0!important;table-layout:fixed}
+.wbs-unified-tbl thead th{height:30px;padding:0 8px;font-size:10px;font-weight:700;color:#6b7280;background:#f8fafc;border-bottom:1px solid #e4e7ec;text-align:left;position:sticky;top:0;z-index:5;box-sizing:border-box;vertical-align:middle;white-space:nowrap}
+.wbs-unified-tbl thead th.col-gantt{padding:0;overflow:visible;position:relative}
+.col-rsz{position:absolute;right:-4px;top:0;bottom:0;width:8px;cursor:col-resize;z-index:7;user-select:none}
+.col-rsz:hover,.col-rsz.on{background:rgba(37,99,235,.3)}
+@keyframes genspin{to{transform:rotate(360deg)}}
+.wbs-unified-tbl thead th.col-gantt>div>div{flex:1;padding:0 4px;font-size:9px;color:#6b7280;display:flex;align-items:center;justify-content:center;height:30px;border-left:1px solid #eef0f3;box-sizing:border-box;white-space:nowrap}
+.wbs-unified-tbl tbody tr{cursor:pointer;height:31px;box-sizing:border-box}
+.wbs-unified-tbl tbody tr.sel{background:#dbeafe!important;outline:2px solid #60a5fa;outline-offset:-2px}
+.wbs-unified-tbl tbody tr:hover:not(.sel){background:#f9fafb}
+.wbs-unified-tbl tbody td{height:31px;padding:0;border-bottom:1px solid #f0f4f8;font-size:11px;box-sizing:border-box;vertical-align:middle;overflow:hidden}
+.wbs-unified-tbl tbody td .cell-inner{padding:0 8px;height:31px;display:flex;align-items:center;line-height:1.2;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;box-sizing:border-box}
+.wbs-unified-tbl tbody td.col-gantt{padding:0;position:relative;overflow:visible} /* v30: 메모 콜아웃이 셀 밖으로 나올 수 있게 */
+.wbs-unified-tbl tbody td.col-gantt .cell-inner{position:relative;padding:0 3px;height:31px;overflow:visible}
+.wbs-unified-tbl tbody td.col-rem .cell-inner{padding:0;justify-content:center}
+/* 탭별 컬럼 보이기/숨기기 */
+.wbs-unified-tbl.wbs-view-split .col-mgr,
+.wbs-unified-tbl.wbs-view-split .col-start,
+.wbs-unified-tbl.wbs-view-split .col-end{display:none}
+.wbs-unified-tbl.wbs-view-tree .col-gantt{display:none}
+.wbs-unified-tbl.wbs-view-gantt .col-mgr,
+.wbs-unified-tbl.wbs-view-gantt .col-start,
+.wbs-unified-tbl.wbs-view-gantt .col-end,
+.wbs-unified-tbl.wbs-view-gantt .col-pct,
+.wbs-unified-tbl.wbs-view-gantt .col-status{display:none}
+/* col-name 폭 탭별 조정 */
+.wbs-unified-tbl.wbs-view-gantt col.col-name{width:280px}
+.wbs-unified-tbl.wbs-view-tree col.col-name{width:280px}
+/* sticky 좌측 컬럼 (간트 탭에서 작업명 고정) */
+.wbs-unified-tbl.wbs-view-gantt tbody td.col-code,
+.wbs-unified-tbl.wbs-view-gantt tbody td.col-name,
+.wbs-unified-tbl.wbs-view-gantt thead th.col-code,
+.wbs-unified-tbl.wbs-view-gantt thead th.col-name{position:sticky;background:#fff;z-index:4}
+.wbs-unified-tbl.wbs-view-gantt thead th.col-code,.wbs-unified-tbl.wbs-view-gantt thead th.col-name{background:#f8fafc;z-index:6}
+.wbs-unified-tbl.wbs-view-gantt tbody td.col-code,.wbs-unified-tbl.wbs-view-gantt thead th.col-code{left:0}
+.wbs-unified-tbl.wbs-view-gantt tbody td.col-name,.wbs-unified-tbl.wbs-view-gantt thead th.col-name{left:50px}
+.wbs-unified-tbl tbody td.col-rem{position:sticky;right:0;background:#fff;z-index:3;border-left:1px solid #e4e7ec}
+.wbs-unified-tbl thead th.col-rem{position:sticky;right:0;background:#f8fafc;z-index:6;border-left:1px solid #e4e7ec}
+/* ─── v28.4: 숨김 토글, 인쇄 버튼, @media print ─── */
+.sb-hide-btn{margin-left:4px;padding:1px 4px;background:transparent;border:none;cursor:pointer;font-size:10px;opacity:0.4;border-radius:3px}
+.sb-hide-btn:hover{opacity:1;background:#eef3fb}
+.ti.hidden-proj{opacity:0.55}
+.sb-show-hidden-btn{padding:1px 6px;background:#f3f4f6;color:#6b7280;border:1px solid #e4e7ec;border-radius:3px;cursor:pointer;font-size:9px;font-weight:600}
+.sb-show-hidden-btn:hover{background:#e5e7eb;color:#1a2332}
+.v284-hide-toggle{padding:5px 11px;background:#f3f4f6;color:#6b7280;border:1.5px solid #e4e7ec;border-radius:5px;cursor:pointer;font-size:11px;font-weight:700;display:flex;align-items:center;gap:4px}
+.v284-hide-toggle:hover{background:#e5e7eb;color:#1a2332}
+.v284-hide-toggle.on{background:#fef3c7;color:#92732e;border-color:#f6d76a}
+.v284-print-btn{padding:5px 11px;background:linear-gradient(135deg,#dbeafe,#bfdbfe);color:#1e40af;border:1.5px solid #93c5fd;border-radius:5px;cursor:pointer;font-size:11px;font-weight:700;margin-left:4px;display:flex;align-items:center;gap:4px}
+.v284-print-btn:hover{background:linear-gradient(135deg,#bfdbfe,#93c5fd);transform:translateY(-1px);box-shadow:0 3px 8px rgba(147,197,253,.4)}
+
+/* ─── 인쇄 전용 CSS (v28.4.2 전면 재작성) ─── */
+@media print{
+  @page{size:A4 landscape;margin:10mm 8mm}
+  body{background:#fff!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  /* 사이드바, 헤더 버튼 숨김 */
+  .sb,.sb-toggle{display:none!important}
+  .cont>.thdr>.bc-b,.cont>.thdr>div:nth-child(3),.cont>.thdr>.addb,.cont>.thdr>.v284-print-btn,.cont>.thdr>.v28-eb,.cont>.thdr>span{display:none!important}
+  .layout{display:block!important}
+  .mainx{margin-left:0!important;width:100%!important}
+  .thdr{border-bottom:2px solid #000!important;padding:8px 0!important;page-break-inside:avoid}
+  .htitle{font-size:14pt!important;font-weight:800!important;color:#000!important}
+  /* 모달, 패널 숨김 */
+  .ov,.mdl,.dpnl{display:none!important}
+  .sb-log,.v28-week-panel,.v28-wsum{display:none!important}
+  /* 동기화 로그도 인쇄 안 함 */
+  
+  /* v28.4.2: 모든 컨테이너 overflow 해제 + height 제한 해제 */
+  .cont,.split-w,#v284-split-wrap,#v284-split-left,#v284-split-right,#v284-gantt-wrap{
+    overflow:visible!important;
+    height:auto!important;
+    max-height:none!important;
+    min-height:0!important;
+    width:100%!important;
+    display:block!important;
+  }
+  /* 분할 화면 좌우 모두 표시되도록 (block 대신 inline-block 또는 flex 유지) */
+  #v284-split-wrap{display:flex!important;align-items:flex-start!important;page-break-inside:auto!important}
+  #v284-split-left{width:30%!important;flex-shrink:0!important;display:block!important}
+  #v284-split-right{flex:1!important;display:flex!important;overflow:visible!important}
+  /* 간트 화면 좌우 모두 표시 */
+  #v284-gantt-wrap{display:flex!important;align-items:flex-start!important;page-break-inside:auto!important}
+  /* 내부 가로 스크롤 컨테이너도 모두 펼침 */
+  .cont *[style*="overflow-x"],.cont *[style*="overflow-y"]{overflow:visible!important;max-width:none!important;width:auto!important}
+  
+  /* 표 자체는 행이 페이지 사이에서 잘리지 않도록 */
+  table{width:100%!important;border-collapse:collapse!important;page-break-inside:auto!important}
+  thead{display:table-header-group!important}  /* 매 페이지 헤더 반복 */
+  tbody{display:table-row-group!important}
+  tr{page-break-inside:avoid!important;page-break-after:auto!important}
+  
+  /* 색상 보존 */
+  .gantt-bar,.v28-fill,.v28-bar-fill,.bdg{print-color-adjust:exact!important;-webkit-print-color-adjust:exact!important}
+  
+  /* 폰트 사이즈 (행 많을 때 줄여서 공간 확보) */
+  .cont,.cont *{font-size:8pt!important;line-height:1.3!important}
+  .wbs-tbl th,.wbs-tbl td,table th,table td{padding:2px 4px!important;white-space:nowrap!important}
+  
+  /* 인쇄용 헤더/푸터 */
+  .v284-print-header{
+    display:block!important;
+    text-align:center;
+    font-size:11pt;
+    font-weight:700;
+    margin-bottom:5mm;
+    border-bottom:1px solid #000;
+    padding-bottom:2mm
+  }
+  .v284-print-footer{
+    display:block!important;
+    text-align:center;
+    font-size:7pt;
+    color:#666;
+    margin-top:4mm;
+    border-top:1px solid #ccc;
+    padding-top:2mm
+  }
+}
+.v284-print-header,.v284-print-footer{display:none}
+.pg-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.pg-ttl{font-size:16px;font-weight:700;color:#1a2332}
+.more-btn{width:100%;padding:5px 8px;background:#f8fafc;border:1px dashed #d1d5db;border-radius:5px;color:#6b7280;font-size:10px;cursor:pointer;text-align:center;margin:3px 0}
+.more-btn:hover{background:#eef3fb;color:#4a7fc1;border-color:#c3d6f0}
+
+@media(max-width:768px){
+  .sb{position:fixed;left:0;top:0;height:100%;z-index:100;width:0!important;overflow:hidden}
+  .sb.mob-open{width:240px!important}
+  .tgl{z-index:101}
+  .main{width:100%;min-width:0}
+  .thdr{height:auto;min-height:52px;flex-wrap:wrap;padding:6px 10px;gap:5px}
+  .htitle{font-size:12px;width:100%}
+  .vb{padding:3px 7px;font-size:10px}
+  .addb{padding:3px 8px;font-size:10px}
+  .split-w{flex-direction:column}
+  table{min-width:400px}
+  .dpnl-fields{flex-wrap:wrap}
+  .dpnl-field{min-width:calc(50% - 4px)!important}
+  .mdl{width:92vw!important}
+  .fbar{overflow-x:auto;flex-wrap:nowrap;-webkit-overflow-scrolling:touch}
+}
+@media(max-width:480px){
+  .dpnl-field{min-width:100%!important}
+}
+</style>
+<!-- v28.4.3: PDF 생성 라이브러리 (jsPDF + html2canvas) -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<!-- v28.4.17: Excel 출력 — xlsx-js-style (셀 색상/테두리 지원) -->
+<script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
+<!-- v28.4.31: 오늘 날짜를 셀 테두리가 아닌 진짜 도형(세로선)으로 그리기 위해 xlsx 파일(zip)을 직접 후처리 -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+</head>
+<body><div id="app"></div>
+<script>
+// ════ 자료 → HTML 이스케이프 (2026-09-27) ════
+// WBS·아이템·프로젝트 칸은 편집권이 있는 직원 누구나 쓴다. 그대로 innerHTML 에 꽂으면 같은 출처 iframe 이라
+// 보는 사람(대표·super 포함) 세션으로 스크립트가 돈다. 칸 값은 esc, onclick 인자는 jsArg.
+function esc(s){ return String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+function jsArg(v){ return esc(JSON.stringify(String(v ?? ""))); }
+// ════ DRAFT 패턴 (타이핑 끊김 방지) ════
+const DRAFT={
+  wform:{code:"",name:"",mgr:"",s:"",e:"",status:"미시작",vendor:"",memo:""},
+  wedit:{},
+  proj:{name:"",no:"",client:"",pm:""},
+};
+const SS={"완료":{bg:"#dcfce7",c:"#16a34a"},"진행중":{bg:"#fef9c3",c:"#ca8a04"},"미시작":{bg:"#f3f4f6",c:"#6b7280"},"지연":{bg:"#fee2e2",c:"#dc2626"},"대기":{bg:"#f3f4f6",c:"#6b7280"}};
+const MN=["1월","2월","3월","4월","5월","6월","7월","8월","9월","10월","11월","12월"];
+let GS=new Date(new Date().getFullYear(),0,1),GE=new Date(new Date().getFullYear(),11,31);
+// v28.0: WBS 데이터로 달력 범위 자동 확장 (Excel 틀고정 + 가로 스크롤 방식)
+function v28RecalcRange(){
+  try{
+    const ds=WBS.map(w=>w.s).filter(Boolean).concat(WBS.map(w=>w.e).filter(Boolean));
+    if(ds.length===0){GS=new Date(new Date().getFullYear(),0,1);GE=new Date(new Date().getFullYear(),11,31);return;}
+    const min=new Date(Math.min(...ds.map(d=>new Date(d).getTime())));
+    const max=new Date(Math.max(...ds.map(d=>new Date(d).getTime())));
+    GS=new Date(min.getFullYear(),min.getMonth(),1);
+    GE=new Date(max.getFullYear(),max.getMonth()+1,0);
+  }catch(e){GS=new Date(new Date().getFullYear(),0,1);GE=new Date(new Date().getFullYear(),11,31);}
+}
+function v28Months(){
+  const arr=[];const y=GS.getFullYear(),m=GS.getMonth();
+  const ey=GE.getFullYear(),em=GE.getMonth();
+  for(let yy=y;yy<=ey;yy++){
+    const sm=(yy===y)?m:0;const eMo=(yy===ey)?em:11;
+    for(let mm=sm;mm<=eMo;mm++)arr.push({y:yy,m:mm,label:(yy%100)+"년 "+(mm+1)+"월",full:yy+"-"+(mm+1)+"월"});
+  }
+  return arr;
+}
+// v28.1: 반응형 달력 — 보일 칸 수와 칸 폭을 화면 폭에 따라 자동 계산
+// 하한 6칸 / 상한 15칸 / 기본 칸폭 60px / 상한 초과 시 칸폭 확대
+function v28CalcCal(availPx){
+  const MIN=6,MAX=15,BASE_W=60;
+  const fitCols=Math.floor(availPx/BASE_W);
+  let cols=Math.max(MIN,Math.min(MAX,fitCols));
+  let cw=BASE_W;
+  // 화면이 너무 좁아서 6칸도 안 들어가면 칸폭을 줄임 (모바일)
+  if(fitCols<MIN){cw=Math.max(40,Math.floor(availPx/MIN));cols=MIN;}
+  // 15칸 상한 도달 후에도 남는 공간 → 칸 폭 자동 확대
+  else if(fitCols>MAX){cw=Math.floor(availPx/MAX);cols=MAX;}
+  return{cols,cw};
+}
+// 실제 보일 칸 수와 칸 폭을 윈도우 폭으로부터 추정 (R() 호출 시 매번 계산)
+function v28CalView(extraSubtract){
+  // 작업명(200) + 비고(44) + padding(40) 만큼 제외 (v29: 사이드바 제거로 항상 0)
+  const sbW=0;
+  const sub=200+44+40+sbW+(extraSubtract||0);
+  const avail=Math.max(360,(typeof window!=="undefined"?window.innerWidth:1280)-sub);
+  return v28CalcCal(avail);
+}
+function v28MhdrHTML(opts){
+  const ms=v28Months();
+  const cw=(opts&&opts.cw)||60;
+  const cells=ms.map((mo,i)=>{
+    const yChange=i===0||ms[i-1].y!==mo.y;
+    return `<div class="v28-mcl${yChange?' v28-mcl-year':''}" style="width:${cw}px">${mo.label}</div>`;
+  }).join("");
+  return `<div class="v28-mhdr">${cells}</div>`;
+}
+function dp(ds){if(!ds)return 0;return Math.max(0,Math.min(100,(new Date(ds)-GS)/(GE-GS)*100));}
+// v29.6: 일정 성과(계획 대비 실적) 기반 그라데이션 색상 — 늦음(빨강)→정상(초록)→앞섬(파랑) 연속 스펙트럼
+function expectedPctByDate(s,e){
+  if(!s||!e)return null;
+  const sd=new Date(s),ed=new Date(e),td=new Date(new Date().toISOString().slice(0,10));
+  if(isNaN(sd)||isNaN(ed)||ed<=sd)return null;
+  if(td<=sd)return 0; if(td>=ed)return 100;
+  return(td-sd)/(ed-sd)*100;
+}
+const SCHED_HEALTH_STOPS=[
+  [-30,[153,27,27]],[-15,[220,38,38]],[-7,[249,115,22]],[-2,[245,158,11]],
+  [0,[163,230,53]],[4,[34,197,94]],[12,[21,128,61]],[22,[37,99,235]],[35,[29,78,216]]
+];
+function scheduleHealthRGB(diff){
+  if(diff==null||isNaN(diff))return[148,163,184];
+  const st=SCHED_HEALTH_STOPS;
+  const d=Math.max(st[0][0],Math.min(st[st.length-1][0],diff));
+  let lo=st[0],hi=st[st.length-1];
+  for(let i=0;i<st.length-1;i++){if(d>=st[i][0]&&d<=st[i+1][0]){lo=st[i];hi=st[i+1];break;}}
+  const span=hi[0]-lo[0],t=span===0?0:(d-lo[0])/span;
+  return lo[1].map((c,i)=>Math.round(c+(hi[1][i]-c)*t));
+}
+function scheduleHealthColor(diff){const[r,g,b]=scheduleHealthRGB(diff);return`rgb(${r},${g},${b})`;}
+function scheduleHealthGradient(diff){
+  const rgb=scheduleHealthRGB(diff);
+  const light=rgb.map(c=>Math.round(c+(255-c)*0.55));
+  return`linear-gradient(90deg, rgb(${light.join(',')}), rgb(${rgb.join(',')}))`;
+}
+let PROJS=[];
+// 제작공정 아이템 — 이 템플릿에서는 쓰지 않는다. 저장·JSON 형식 호환을 위해 빈 객체로만 둔다.
+let MITEM={};
+let WBS=[];
+// 간트 메모 말풍선 — 열린 메모 id 집합
+let _memoOpen={};
+let S={
+  mv:"wbs",wp:"wbs",
+  // v28.4.45: EVMS 요약은 기본 접힘 — 스케줄 본문이 먼저 보이고, 보고 싶을 때만 펼치기 (사용자 요청)
+  evmsHide:true,
+  wv:"split",wf:"전체",wexp:{}   /* id 가 false 면 접힘 — 기본은 모두 펼침 */,
+  wsel:null,wedit:false,wmod:false,
+  wform:{code:"",name:"",mgr:"",s:"",e:"",status:"미시작",vendor:"",memo:""},
+  selproj:PROJS[0]||null,showmore:false,
+  // v28.4.17: NOTE 편집 모달
+  noteEditMod:false,noteEditDraft:"",
+  logs:[],
+};
+// v28.4.34: 재렌더 시 스크롤이 맨 위로 튀는 문제 — 예전엔 .wbs-unified-wrap과 .pg 딱 2곳만
+// 스크롤 위치를 저장/복원해서, 그 외 스크롤 영역(WBS 행 상세 편집 패널 등)에서
+// 행 선택 등으로 재렌더되면 스크롤이 초기화됐음.
+// 화면에 존재하는 모든 스크롤 영역을 배열로 관리해 한 번에 저장/복원하도록 일반화.
+const SCROLL_KEEP_SELECTORS=[".wbs-unified-wrap",".dpnl",".v28-wsum-list"];
+const us=u=>{
+  // 재렌더 전 스크롤 위치 저장 (스크롤 영역들 + 페이지) → 깜빡임/맨위로 튐 방지
+  const _scrolls={};
+  let _pageScroll=0;
+  try{
+    SCROLL_KEEP_SELECTORS.forEach(sel=>{
+      const el=document.querySelector(sel);
+      if(el)_scrolls[sel]=el.scrollTop;
+    });
+    const pg=document.querySelector(".pg");
+    _pageScroll=(pg?pg.scrollTop:0)||window.scrollY||0;
+  }catch(e){}
+  S=typeof u==="function"?u(S):{...S,...u};
+  R();
+  // 재렌더 후 스크롤 위치 복원
+  try{
+    SCROLL_KEEP_SELECTORS.forEach(sel=>{
+      const el=document.querySelector(sel);
+      if(el&&_scrolls[sel])el.scrollTop=_scrolls[sel];
+    });
+    const pg=document.querySelector(".pg");
+    if(pg&&_pageScroll)pg.scrollTop=_pageScroll;
+    else if(_pageScroll)window.scrollTo(0,_pageScroll);
+  }catch(e){}
+}
+// v28.4.43: WBS 레벨 명칭 체계 (사용자 확정) — Project 총 스케줄은 레벨로 치지 않음.
+//   Level 1 = 대단락(lv0, 코드 N) · Level 2 = 중단락(lv1, N.M) · Level 3 = 소단락(lv2, N.M.K)
+//   Level 4 = 세부단락(lv3, N.M.K.L) · 그 이하 = 하위 N단계
+const LV_NAMES=["대단락","중단락","소단락","세부단락"];
+const lvName=lv=>LV_NAMES[lv]||("하위 "+(lv+1)+"단계");
+// v28.4.46: PDF/Excel 생성 진행 표시 — html2canvas가 대형 스케줄에서 수십 초 걸리는데
+// 아무 피드백이 없어 "안 눌린 줄 알고 두 번 클릭"하게 되던 문제. 클릭 즉시 오버레이를
+// 띄우고, _genBusy 가드로 생성 중 중복 실행을 차단한다.
+// v28.4.47: WBS 항목 추가 모달의 상위 그룹 선택 — 항목이 수백 개면 평면 select는
+// 스크롤 지옥이라, 기본은 대단락만 보이고 ▶로 펼쳐 내려가는 트리 선택기로 교체.
+// 모달 재렌더 없이 순수 DOM 조작이라 입력 중인 작업명 등이 지워지지 않는다.
+window.wpToggle=function(id,ev){
+  if(ev)ev.stopPropagation();
+  const box=document.getElementById("wp-ch-"+id);const ar=document.getElementById("wp-ar-"+id);
+  if(!box)return;
+  const open=box.style.display!=="none";
+  box.style.display=open?"none":"block";
+  if(ar)ar.textContent=open?"▶":"▼";
+};
+window.wpPick=function(id,label){
+  // v28.4.52: 선택을 DRAFT에 저장 → 다른 창 클릭 후 재렌더돼도 상위 그룹 선택 유지
+  //   (기존엔 hidden input value만 DOM으로 넣어 oninput을 안 거쳐 DRAFT에 반영 안 됨 → 리셋됨)
+  try{ DRAFT.wform.parentId=id; }catch(e){}
+  const v=document.querySelector('[data-draft="wform"][data-k="parentId"]');if(v)v.value=id;
+  const b=document.getElementById("wpParentBtn");if(b){const s=b.querySelector("span");if(s)s.textContent=label;else b.textContent=label;}
+  const t=document.getElementById("wpTree");if(t)t.style.display="none";
+};
+window.wpOpenTree=function(){
+  const t=document.getElementById("wpTree");if(!t)return;
+  t.style.display=t.style.display==="none"?"block":"none";
+};
+let _genBusy=false;
+function showGenOverlay(msg){
+  let el=document.getElementById("gen-ovl");
+  if(!el){
+    el=document.createElement("div");el.id="gen-ovl";
+    el.style.cssText="position:fixed;inset:0;background:rgba(15,23,42,.45);z-index:9999;display:flex;align-items:center;justify-content:center";
+    el.innerHTML='<div style="background:#fff;border-radius:10px;padding:22px 34px;font-size:13px;font-weight:700;color:#1e293b;box-shadow:0 10px 40px rgba(0,0,0,.25);display:flex;align-items:center;gap:12px;max-width:420px"><span style="width:18px;height:18px;border:3px solid #c7d7f0;border-top-color:#2563eb;border-radius:50%;display:inline-block;flex-shrink:0;animation:genspin .8s linear infinite"></span><span id="gen-ovl-msg"></span></div>';
+    document.body.appendChild(el);
+  }
+  el.style.display="flex";
+  document.getElementById("gen-ovl-msg").textContent=msg||"생성 중...";
+}
+function hideGenOverlay(){const el=document.getElementById("gen-ovl");if(el)el.style.display="none";}
+// v28.4.44: 컬럼 폭 드래그 조절 — 코드가 '3.4.1'처럼 길어지면 잘려 보여서(사용자 리포트),
+// 헤더 경계를 마우스로 끌어 코드·작업명·담당자·날짜·진도율·상태 폭을 조절할 수 있게 한다.
+// 조절값은 localStorage에 저장되어 새로고침·재접속 후에도 유지.
+const _COLW_KEY="wbs_col_widths_v1";
+const _COLW_DEF={code:96,name:240,mgr:80,start:100,end:100,pct:90,status:70};
+let _colW={..._COLW_DEF};
+try{_colW={..._COLW_DEF,...(JSON.parse(localStorage.getItem(_COLW_KEY)||"{}"))};}catch(e){}
+let _rszCol=null,_rszX=0,_rszW=0;
+document.addEventListener("mousedown",e=>{
+  const h=e.target&&e.target.closest?e.target.closest(".col-rsz"):null;
+  if(!h)return;
+  _rszCol=h.dataset.col;_rszX=e.clientX;_rszW=_colW[_rszCol]||_COLW_DEF[_rszCol]||80;
+  h.classList.add("on");
+  e.preventDefault();e.stopPropagation();
+  document.body.style.cursor="col-resize";document.body.style.userSelect="none";
+});
+document.addEventListener("mousemove",e=>{
+  if(!_rszCol)return;
+  const w=Math.max(36,Math.min(600,_rszW+(e.clientX-_rszX)));
+  _colW[_rszCol]=w;
+  document.querySelectorAll(".wbs-unified-tbl col.col-"+_rszCol).forEach(c=>c.style.width=w+"px");
+});
+document.addEventListener("mouseup",()=>{
+  if(!_rszCol)return;
+  document.querySelectorAll(".col-rsz.on").forEach(x=>x.classList.remove("on"));
+  _rszCol=null;document.body.style.cursor="";document.body.style.userSelect="";
+  try{localStorage.setItem(_COLW_KEY,JSON.stringify(_colW));}catch(e){}
+});
+// v28.4.52: 모달(.mdl) 드래그 이동 — 헤더(.mdl-drag)를 잡아 창을 원하는 위치로 옮긴다.
+//   재렌더로 모달이 새로 그려지면 위치는 다시 중앙(허용) — 입력 중엔 재렌더가 없어 유지됨.
+let _mdlEl=null,_mdlSX=0,_mdlSY=0,_mdlDX=0,_mdlDY=0;
+document.addEventListener("mousedown",e=>{
+  const h=e.target&&e.target.closest?e.target.closest(".mdl-drag"):null;
+  if(!h)return;
+  _mdlEl=h.closest(".mdl");if(!_mdlEl)return;
+  const m=(_mdlEl.style.transform||"").match(/translate\(([-\d.]+)px,\s*([-\d.]+)px\)/);
+  _mdlDX=m?parseFloat(m[1]):0; _mdlDY=m?parseFloat(m[2]):0;
+  _mdlSX=e.clientX;_mdlSY=e.clientY;
+  document.body.style.userSelect="none";
+  e.preventDefault();
+});
+document.addEventListener("mousemove",e=>{
+  if(!_mdlEl)return;
+  _mdlEl.style.transform=`translate(${_mdlDX+(e.clientX-_mdlSX)}px, ${_mdlDY+(e.clientY-_mdlSY)}px)`;
+});
+document.addEventListener("mouseup",()=>{ if(_mdlEl){_mdlEl=null;document.body.style.userSelect="";} });
+function hasC(id){const i=WBS.findIndex(w=>w.id===id);return i<WBS.length-1&&WBS[i+1].lv>WBS[i].lv;}
+// 직계 자식 WBS 항목들 반환 (같은 projId, 바로 아래 레벨)
+function childW(id){
+  const i=WBS.findIndex(w=>w.id===id);
+  if(i<0)return[];
+  const parent=WBS[i];const kids=[];
+  for(let j=i+1;j<WBS.length;j++){
+    if(WBS[j].projId!==parent.projId)break;
+    if(WBS[j].lv<=parent.lv)break;            // 같거나 상위 레벨 → 형제/상위, 종료
+    if(WBS[j].lv===parent.lv+1)kids.push(WBS[j]); // 직계 자식만
+  }
+  return kids;
+}
+// 후손(모든 하위 레벨) 전체의 일정 범위 (min 시작 ~ max 종료) — 대단락 간트 막대용
+function wRange(id){
+  const i=WBS.findIndex(w=>w.id===id);
+  if(i<0)return null;
+  const parent=WBS[i];const ss=[],ee=[];
+  for(let j=i+1;j<WBS.length;j++){
+    if(WBS[j].projId!==parent.projId)break;
+    if(WBS[j].lv<=parent.lv)break;     // 형제/상위 도달 → 종료
+    if(WBS[j].s)ss.push(WBS[j].s);
+    if(WBS[j].e)ee.push(WBS[j].e);
+  }
+  if(!ss.length||!ee.length)return null;
+  return{s:ss.sort()[0], e:ee.sort().slice(-1)[0]};
+}
+function wCS(w){
+  // 하위 행이 있는 행은 언제나 하위 진도율의 평균(롤업). 수동 진도율(pctManual)은 말단 행에만 쓴다.
+  //   (원본 v28.4.41 버그: 상위 행에 pctManual 이 남으면 하위를 아무리 고쳐도 상위 %가 얼어붙었다)
+  if(hasC(w.id)){
+    const kids=childW(w.id);
+    if(kids.length){
+      const pct=Math.round(kids.reduce((a,k)=>a+wCS(k).pct,0)/kids.length);   // 재귀 — 손자까지 집계
+      let st=w.status==="지연"?"지연":(pct===100?"완료":pct>0?"진행중":"미시작");
+      // 하위가 모두 0%여도 사용자가 상위를 '진행중'으로 둔 것은 존중 (상태 배지만, 진도율은 롤업값 그대로)
+      if(st==="미시작" && w.status==="진행중") st="진행중";
+      return{pct,status:st};
+    }
+  }
+  // 말단 행 + 수동 진도율
+  if(w.pctManual!=null && w.pctManual!==""){
+    const pct=Math.max(0,Math.min(100,Math.round(Number(w.pctManual))||0));
+    return{pct,status:w.status||(pct>=100?"완료":pct>0?"진행중":"미시작")};
+  }
+  // 말단 행: 상태 기준 (완료=100, 미시작=0, 진행중=명시된 pct 또는 시작~완료 경과율)
+  const st=w.status||(w.pct===100?"완료":w.pct>0?"진행중":"미시작");
+  let pct;
+  if(st==="완료")pct=100;
+  else if(st==="미시작")pct=0;
+  else if(w.pct!=null)pct=w.pct;
+  else if(w.s&&w.e){
+    const today=new Date(),start=new Date(w.s),end=new Date(w.e);
+    if(today<start)pct=0;
+    else if(today>=end)pct=99;          // 완료 처리 전까지 99%
+    else pct=Math.round((today-start)/(end-start)*100);
+    pct=Math.max(1,Math.min(99,pct));   // 진행중은 1~99%
+  }
+  else pct=0;
+  return{pct,status:st};
+}
+function wVis(){
+  const res=[];
+  // v28.4: 현재 선택된 프로젝트의 WBS만 표시 (projId 필터)
+  const curPid=S.selproj?.id||_wbsPid;
+  const filtered=WBS.filter(w=>{
+    if(!curPid)return false;
+    if(w.projId!==curPid)return false;
+    return true;
+  });
+  for(let i=0;i<filtered.length;i++){
+    const w=filtered[i];
+    // 상위 조상 중 하나라도 접혀 있으면 숨김 (3단계 이상 계층 지원)
+    if(w.lv>0){
+      let hidden=false, needLv=w.lv-1;
+      for(let j=i-1;j>=0&&needLv>=0;j--){
+        if(filtered[j].lv===needLv){            // 직계 조상 발견
+          if(S.wexp[filtered[j].id]===false){hidden=true;break;}
+          needLv--;                              // 다음 상위 조상 찾기
+        }
+      }
+      if(hidden)continue;
+    }
+    const{status}=wCS(w);if(S.wf!=="전체"&&status!==S.wf)continue;
+    res.push(w);
+  }
+  return res;
+}
+// ── 대단락 "N", 하위 "N.M" ──
+function renumberWBS(){
+  // v28.4.34: projId별로 독립적으로 다단계 번호 매김 (3레벨 이상 지원).
+  //   lv0 → 1, 2, 3 …   lv1 → N.1, N.2 …   lv2 → N.M.1, N.M.2 …   (레벨 제한 없음)
+  //   각 항목은 배열 순서 + lv로 계층이 결정되므로, 레벨별 카운터를 유지하면서
+  //   더 얕은 레벨을 만날 때마다 그보다 깊은 카운터를 리셋한다.
+  const projIds=new Set(WBS.filter(w=>w.projId).map(w=>w.projId));
+  projIds.add(undefined);   // projId 없는 옛 데이터 호환
+  projIds.forEach(curPid=>{
+    const counters=[];   // counters[lv] = 해당 레벨의 현재 번호
+    for(let i=0;i<WBS.length;i++){
+      if(WBS[i].projId!==curPid)continue;
+      const lv=WBS[i].lv||0;
+      counters[lv]=(counters[lv]||0)+1;
+      counters.length=lv+1;              // 더 깊은 레벨 카운터 초기화
+      const code=counters.map(x=>x||0).join(".");
+      WBS[i]={...WBS[i],code};
+    }
+  });
+}
+function moveWBS(id,dir){
+  // v28.4.39: 다단계(3레벨+) 대응 재작성 — 어떤 레벨이든 자신+하위 서브트리를 통째로,
+  // 같은 부모 아래의 "형제 서브트리" 단위로만 위/아래 이동한다.
+  // (기존 코드는 lv0만 블록 이동이고 lv>0은 한 줄 교환이라, 하위 묶음을 가진 소단락을
+  //  움직이면 자기 한 줄만 옆 형제의 자식들 사이로 파고들어 계층이 깨졌음 —
+  //  예: 3.2 ▼ 를 누르면 3.1 의 하위 행 사이로 끼어드는 버그)
+  const idx=WBS.findIndex(w=>w.id===id);if(idx===-1)return;
+  const item=WBS[idx];const lv=item.lv||0;
+  // 서브트리 끝 위치: 자신 바로 뒤부터 더 깊은 레벨이 연속되는 구간의 끝
+  const subEnd=i0=>{let j=i0+1;while(j<WBS.length&&WBS[j].projId===WBS[i0].projId&&(WBS[j].lv||0)>(WBS[i0].lv||0))j++;return j;};
+  const end=subEnd(idx);
+  if(dir===-1){
+    // 위로: 직전 형제(같은 lv)의 시작 위치를 찾는다 — 그 형제의 자식들(lv 더 깊음)은 건너뜀.
+    let p=idx-1;
+    while(p>=0&&WBS[p].projId===item.projId&&(WBS[p].lv||0)>lv)p--;
+    if(p<0||WBS[p].projId!==item.projId||(WBS[p].lv||0)!==lv)return;   // 부모/경계 → 더 못 올라감
+    const bl=WBS.splice(idx,end-idx);
+    WBS.splice(p,0,...bl);
+  }else{
+    // 아래로: 내 서브트리 바로 다음이 같은 lv 형제여야 하고, 그 형제의 서브트리 끝 뒤로 이동.
+    if(end>=WBS.length)return;
+    const nxt=WBS[end];
+    if(nxt.projId!==item.projId||(nxt.lv||0)!==lv)return;   // 다음이 부모 경계/다른 프로젝트 → 더 못 내려감
+    const nxtEnd=subEnd(end);
+    const bl=WBS.splice(idx,end-idx);
+    WBS.splice(idx+(nxtEnd-end),0,...bl);
+  }
+  renumberWBS();addLog(`↕ 순서·코드 갱신: ${item.name}`,"info");us({});
+}
+function bdgS(s){const st=SS[s]||{bg:"#f3f4f6",c:"#6b7280"};return`<span class="bdg" style="background:${st.bg};color:${st.c}">${esc(s)}</span>`;}
+function prg(v){const c=v>=100?"#16a34a":v>0?"#4a7fc1":"#e4e7ec";return`<div class="prg"><div class="pb"><div class="pf" style="width:${v}%;background:${c}"></div></div><span class="pv">${v}%</span></div>`;}
+function addLog(m,k="ok"){
+  const t=new Date().toLocaleTimeString("ko-KR",{hour12:false,hour:"2-digit",minute:"2-digit",second:"2-digit"});
+  S.logs.unshift({t,m,k});if(S.logs.length>20)S.logs.pop();
+}
+function mvBtn(wid){
+  return`<td style="width:44px;padding:0 4px;text-align:right;white-space:nowrap">
+    <button data-a="mvW" data-id="${esc(wid)}" data-dir="up" style="width:19px;height:17px;border-radius:3px;border:1px solid #d1d5db;background:#f9fafb;color:#374151;cursor:pointer;font-size:10px;padding:0;margin-right:1px">▲</button><button data-a="mvW" data-id="${esc(wid)}" data-dir="dn" style="width:19px;height:17px;border-radius:3px;border:1px solid #d1d5db;background:#f9fafb;color:#374151;cursor:pointer;font-size:10px;padding:0">▼</button>
+  </td>`;
+}
+function inp(dk,fk,ex,val){return`<input data-draft="${dk}" data-k="${fk}" value="${String(val||"").replace(/"/g,"&quot;")}" ${ex||""} class="fi" onfocus="this.style.borderColor='#4a7fc1'" onblur="this.style.borderColor='#e4e7ec'"/>`;}
+function sel(dk,fk,opts,cur){return`<select data-draft="${dk}" data-k="${fk}" class="fi">${opts.map(o=>`<option${o===cur?" selected":""}>${o}</option>`).join("")}</select>`;}
+function rDetailPanel(){
+  if(!S.wsel)return"";
+  // v29.33: 선택된 행이 삭제/원격 저장으로 WBS에서 사라졌으면(stale 참조) 선택을 조용히 해제.
+  //   이전엔 wCS→hasC가 undefined.lv를 읽다 TypeError로 R() 전체가 죽어 화면이 마비됐음.
+  //   최신 객체로 재해석(id 매칭)해야 다른 사용자의 수정 내용도 패널에 반영됨.
+  const _live=WBS.find(x=>x.id===S.wsel.id);
+  if(!_live){S.wsel=null;S.wedit=false;return"";}
+  S.wsel=_live;
+  const w=S.wsel;const{pct,status}=wCS(w);const sc=SS[status]||{bg:"#f3f4f6",c:"#6b7280"};
+  const em=S.wedit;const pd=pct!==null?`${pct}%`:"—";
+  // v28.4.51: 자식이 있는 상위 항목은 자기 s/e가 비어도 하위 날짜 범위(min 시작~max 완료)를
+  //   상세 패널 시작일/완료일에 보여준다 (간트 막대는 이미 wRange로 그려지는데 패널만 비어있던 문제).
+  const _kr = hasC(w.id) ? wRange(w.id) : null;
+  const _dispS = w.s || (_kr ? _kr.s : "");
+  const _dispE = w.e || (_kr ? _kr.e : "");
+  const _rollDate = (!w.s && _kr) ? ` <span style="font-size:9px;color:#9ca3af">(하위 합산)</span>` : "";
+  const _manual=(w.pctManual!=null&&w.pctManual!=="");
+  const _hasKids=hasC(w.id);
+  const pctSrc=_hasKids?"하위 평균":(_manual?"✋ 수동":(w.s&&w.e?"일정 기준":"자동"));
+  const pctSrcColor=_manual?"#7c3aed":"#9ca3af";
+  function field(lbl,val,ec){return`<div class="dpnl-field"><div class="dpnl-field-lbl">${lbl}</div><div class="dpnl-field-val">${em?ec:val}</div></div>`;}
+  return`<div class="dpnl">
+    <div class="dpnl-hdr">
+      <div style="display:flex;align-items:center">
+        <span class="dpnl-code">${esc(w.code)}</span>
+        <span style="font-size:9px;font-weight:700;color:#7c3aed;background:#f5f3ff;border:1px solid #ddd6fe;border-radius:8px;padding:1px 7px;margin-right:6px;white-space:nowrap">${lvName(w.lv||0)} · Level ${(w.lv||0)+1}</span>
+        ${em?`<input data-draft="wedit" data-k="name" value="${w.name.replace(/"/g,"&quot;")}" style="font-size:14px;font-weight:700;color:#1a2332;border:1px solid #c3d6f0;border-radius:5px;padding:2px 8px;outline:none;min-width:200px" onfocus="this.style.borderColor='#4a7fc1'" onblur="this.style.borderColor='#c3d6f0'"/>`:`<span class="dpnl-name">${esc(w.name)}</span>`}
+      </div>
+      <div class="dpnl-actions">
+        ${em?`<button class="save-btn" data-a="svWEdit">💾 저장</button><button data-a="clWEdit" style="padding:4px 10px;background:#f3f4f6;border:none;border-radius:5px;font-size:11px;cursor:pointer;color:#6b7280">취소</button>`:`<button class="edit-btn" data-a="stWEdit">✏ 수정</button>`}
+        ${em?"":`<button data-a="dupW" data-id="${esc(w.id)}" style="padding:4px 10px;background:#eff6ff;color:#2563eb;border:1px solid #93c5fd;border-radius:5px;font-size:11px;cursor:pointer;font-weight:600" title="이 항목(하위 포함)을 같은 일정으로 바로 아래에 복사">📋 복사</button>`}
+        <button data-a="delW" data-id="${esc(w.id)}" style="padding:4px 10px;background:#fee2e2;color:#dc2626;border:1px solid #fca5a5;border-radius:5px;font-size:11px;cursor:pointer;font-weight:600" title="이 항목 삭제">🗑 삭제</button>
+        <button class="close-btn" data-a="clrW">✕</button>
+      </div>
+    </div>
+    <div class="dpnl-fields">
+      ${field("담당자",esc(w.mgr),`<input data-draft="wedit" data-k="mgr" value="${(w.mgr||"").replace(/"/g,"&quot;")}" class="dpnl-input" onfocus="this.style.borderColor='#4a7fc1'" onblur="this.style.borderColor='#c3d6f0'"/>`)}
+      ${field("시작일",esc(_dispS||"—")+_rollDate,`<input type="date" data-draft="wedit" data-k="s" value="${esc(w.s)}" class="dpnl-input"/>`)}
+      ${field("완료일",esc(_dispE||"—")+_rollDate,`<input type="date" data-draft="wedit" data-k="e" value="${esc(w.e)}" class="dpnl-input"/>`)}
+      ${field("진도율",`<span style="font-weight:700;color:#4a7fc1">${pd}</span> <span style="font-size:9px;color:${pctSrcColor};font-weight:600">(${pctSrc})</span>`,(_hasKids?`<span style="font-size:10px;color:#9ca3af">하위 항목 진도율의 평균으로 자동 계산됩니다</span>`:`<div><input type="number" min="0" max="100" data-draft="wedit" data-k="pctManual" value="${esc(_manual?w.pctManual:'')}" placeholder="비우면 자동" class="dpnl-input" style="width:120px"/> <span style="font-size:9px;color:#9ca3af">% · 비우면 자동</span></div>`))}
+      ${field("상태",`<span class="bdg" style="background:${sc.bg};color:${sc.c}">${esc(status)}</span>`,`<select data-draft="wedit" data-k="status" class="dpnl-select">${["미시작","진행중","완료","지연"].map(o=>`<option${o===w.status?" selected":""}>${o}</option>`).join("")}</select>`)}
+      ${field("담당 업체",w.vendor?`<span style="font-size:11px;color:#1e40af;font-weight:700">🏢 ${esc(w.vendor)}</span>`:`<span style="font-size:10px;color:#9ca3af">—</span>`,`<input data-draft="wedit" data-k="vendor" value="${(w.vendor||"").replace(/"/g,"&quot;")}" placeholder="협력사·외주 업체명 등" class="dpnl-input"/>`)}
+      ${field("📝 메모 / 이벤트",w.memo?`<div style="font-size:11px;color:#1e40af;background:#eff6ff;border:1px solid #93c5fd;border-radius:3px;padding:4px 8px;white-space:pre-wrap;line-height:1.4">${esc(w.memo)}</div>`:`<span style="font-size:10px;color:#9ca3af">— PDF 막대 옆 콜아웃에 표시됨 —</span>`,`<textarea data-draft="wedit" data-k="memo" placeholder="예: 10/20 자재 입고 확인" class="dpnl-input" rows="2" style="resize:vertical;font-family:inherit;width:100%;box-sizing:border-box;line-height:1.4">${esc(w.memo||"")}</textarea>`)}
+    </div>
+  </div>`;
+}
+// ═══════════════════════════════════════════════════════════
+// EVMS (획득가치관리 / Earned Value Management) — v28.5
+// PV(계획가치) · EV(획득가치) · SV(일정차이) · SPI(일정성과지수) + S-Curve
+// 비용(BAC/AC/CPI)은 계약금액 입력 시 환산
+// ═══════════════════════════════════════════════════════════
+function evmsPlanPct(w,when){ // 대단락 계획 진척%
+  let s=w.s,e=w.e;
+  if(hasC(w.id)){const r=wRange(w.id); if(r){s=r.s;e=r.e;}}
+  if(!s||!e)return null;
+  const t=when||(()=>{const d=new Date();d.setHours(0,0,0,0);return d;})();
+  const sd=new Date(s),ed=new Date(e);
+  if(t<=sd)return 0; if(t>=ed)return 100;
+  return (t-sd)/(ed-sd)*100;
+}
+function evmsCalc(pid){
+  const tops=WBS.filter(w=>w.projId===pid&&w.lv===0);
+  let PV=0,EV=0,wsum=0;const rows=[];
+  tops.forEach(w=>{
+    const wt=(w.weight!=null?w.weight:100/tops.length);
+    const ev=wCS(w).pct||0; const pvRaw=evmsPlanPct(w); const pv=pvRaw==null?0:pvRaw;
+    PV+=wt*pv; EV+=wt*ev; wsum+=wt;
+    rows.push({code:w.code,name:w.name,wt,pv:pvRaw==null?null:Math.round(pvRaw),ev,sv:Math.round(ev-pv),spi:pv>0?+(ev/pv).toFixed(2):null});
+  });
+  const pvP=wsum?+(PV/wsum).toFixed(1):0, evP=wsum?+(EV/wsum).toFixed(1):0;
+  const dated=WBS.filter(w=>w.projId===pid&&w.s&&w.e);
+  const sMin=dated.length?dated.map(w=>w.s).slice().sort()[0]:"";
+  const eMax=dated.length?dated.map(w=>w.e).slice().sort().slice(-1)[0]:"";
+  const curve=[];
+  if(sMin&&eMax){
+    const ps=new Date(sMin),pe=new Date(eMax);
+    let d=new Date(ps.getFullYear(),ps.getMonth(),1);
+    while(d<=pe){
+      const me=new Date(d.getFullYear(),d.getMonth()+1,0);
+      let pv=0,ws=0;
+      tops.forEach(w=>{const wt=(w.weight!=null?w.weight:100/tops.length);const p=evmsPlanPct(w,me);pv+=wt*(p==null?0:p);ws+=wt;});
+      curve.push({x:+((me-ps)/(pe-ps)*100).toFixed(1),pv:+(pv/ws).toFixed(1),label:(me.getMonth()+1)+"월",date:me.toISOString().slice(0,10)});
+      d.setMonth(d.getMonth()+1);
+    }
+  }
+  const today=new Date();today.setHours(0,0,0,0);
+  const todayX=(sMin&&eMax)?+(((today-new Date(sMin))/(new Date(eMax)-new Date(sMin)))*100).toFixed(1):-1;
+  return {tops,rows,pv:pvP,ev:evP,sv:+(evP-pvP).toFixed(1),spi:pvP>0?+(evP/pvP).toFixed(2):null,curve,todayX,sMin,eMax};
+}
+function evmsPanel(pid,compact){
+  const E=evmsCalc(pid);
+  const bac=(S.evmsBac&&S.evmsBac[pid])||0;
+  const krw=n=>n?('₩'+Math.round(n).toLocaleString('ko-KR')):'—';
+  const spiC=E.spi==null?'#6b7280':(E.spi>=1?'#16a34a':E.spi>=0.9?'#d97706':'#dc2626');
+  const svC=E.sv>=0?'#16a34a':'#dc2626';
+  const evVal=bac*E.ev/100, pvVal=bac*E.pv/100, cvSched=evVal-pvVal;
+  const card=(lbl,val,sub,col)=>`<div style="flex:1;min-width:96px;background:#fff;border:1px solid #e4e7ec;border-radius:7px;padding:6px 10px"><div style="font-size:9px;color:#9ca3af;font-weight:600;margin-bottom:2px">${lbl}</div><div style="font-size:15px;font-weight:800;color:${col||'#111827'}">${val}</div><div style="font-size:8px;color:#9ca3af;margin-top:1px">${sub||''}</div></div>`;
+  // S-Curve SVG
+  const W=760,H=250,pad=40;
+  const X=x=>pad+(x/100)*(W-pad*2), Y=y=>H-pad-(y/100)*(H-pad*2);
+  const grid=[0,25,50,75,100].map(g=>`<line x1="${pad}" y1="${Y(g).toFixed(1)}" x2="${W-pad}" y2="${Y(g).toFixed(1)}" stroke="#eef0f3"/><text x="${pad-6}" y="${(Y(g)+3).toFixed(1)}" text-anchor="end" font-size="9" fill="#9ca3af">${g}</text>`).join('');
+  const xlab=E.curve.filter((p,i)=>i%Math.ceil(E.curve.length/12||1)===0).map(p=>`<text x="${X(p.x).toFixed(1)}" y="${H-pad+14}" text-anchor="middle" font-size="8" fill="#9ca3af">${p.label}</text>`).join('');
+  const pvPath=E.curve.map((p,i)=>`${i?'L':'M'}${X(p.x).toFixed(1)},${Y(p.pv).toFixed(1)}`).join(' ');
+  const evPath=(E.todayX>=0)?`M${X(0)},${Y(0)} L${X(E.todayX).toFixed(1)},${Y(E.ev).toFixed(1)}`:'';
+  const tline=E.todayX>=0?`<line x1="${X(E.todayX).toFixed(1)}" y1="${pad}" x2="${X(E.todayX).toFixed(1)}" y2="${H-pad}" stroke="#ef4444" stroke-width="1.5" stroke-dasharray="3,2"/><text x="${X(E.todayX).toFixed(1)}" y="${pad-6}" text-anchor="middle" font-size="9" fill="#ef4444" font-weight="700">오늘</text>`:'';
+  const dots=E.todayX>=0?`<circle cx="${X(E.todayX).toFixed(1)}" cy="${Y(E.pv).toFixed(1)}" r="4" fill="#1e40af"/><text x="${(X(E.todayX)+7).toFixed(1)}" y="${(Y(E.pv)+12).toFixed(1)}" font-size="9" fill="#1e40af" font-weight="700">PV ${E.pv}%</text><circle cx="${X(E.todayX).toFixed(1)}" cy="${Y(E.ev).toFixed(1)}" r="4" fill="#16a34a"/><text x="${(X(E.todayX)+7).toFixed(1)}" y="${(Y(E.ev)-5).toFixed(1)}" font-size="9" fill="#16a34a" font-weight="700">EV ${E.ev}%</text>`:'';
+  const svg=`<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;background:#fff;border:1px solid #e4e7ec;border-radius:8px">
+    ${grid}${xlab}
+    <path d="${pvPath}" fill="none" stroke="#1e40af" stroke-width="2"/>
+    ${evPath?`<path d="${evPath}" fill="none" stroke="#16a34a" stroke-width="2"/>`:''}
+    ${tline}${dots}
+    <g transform="translate(${pad+8},${pad+2})"><rect width="10" height="3" y="3" fill="#1e40af"/><text x="14" y="7" font-size="9" fill="#374151">PV 계획</text><rect width="10" height="3" y="16" x="0" fill="#16a34a"/><text x="14" y="20" font-size="9" fill="#374151">EV 실행</text></g>
+  </svg>`;
+  const verdict=E.spi==null?'평가 불가':(E.spi>=1?`일정 준수 (계획 대비 +${E.sv}%p)`:E.spi>=0.9?`경미한 지연 (${E.sv}%p, SPI ${E.spi})`:`일정 지연 (${E.sv}%p, SPI ${E.spi}) — 만회 대책 필요`);
+  const rowsHtml=E.rows.map(r=>{
+    const sc=r.spi==null?'#6b7280':(r.spi>=1?'#16a34a':r.spi>=0.9?'#d97706':'#dc2626');
+    return `<tr style="border-bottom:1px solid #f1f3f5">
+      <td style="padding:5px 8px;font-size:11px;color:#4a7fc1;font-weight:600">${esc(r.code)}</td>
+      <td style="padding:5px 8px;font-size:11px">${esc(r.name)}</td>
+      <td style="padding:5px 8px;text-align:center;font-size:11px">${esc(r.wt)}%</td>
+      <td style="padding:5px 8px;text-align:center;font-size:11px;color:#1e40af">${r.pv==null?'—':r.pv+'%'}</td>
+      <td style="padding:5px 8px;text-align:center;font-size:11px;color:#16a34a;font-weight:600">${r.ev}%</td>
+      <td style="padding:5px 8px;text-align:center;font-size:11px;color:${r.sv>=0?'#16a34a':'#dc2626'};font-weight:600">${r.sv>=0?'+':''}${r.sv}%p</td>
+      <td style="padding:5px 8px;text-align:center;font-size:11px;color:${sc};font-weight:700">${r.spi==null?'—':r.spi}</td>
+    </tr>`;}).join('');
+  return `<div style="padding:4px 2px 2px">
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px">
+      ${card('계획 PV',E.pv+'%','오늘까지 계획 진척','#1e40af')}
+      ${card('실행 EV',E.ev+'%','실행 진척','#16a34a')}
+      ${card('일정차이 SV',(E.sv>=0?'+':'')+E.sv+'%p','EV − PV',svC)}
+      ${card('일정성과 SPI',E.spi==null?'—':E.spi,'EV ÷ PV ('+(E.spi>=1?'정상':'지연')+')',spiC)}
+      ${card('총예산 BAC',krw(bac),'계약금액','#111827')}
+      ${card('실행금액 EV(₩)',krw(evVal),'BAC × EV%','#16a34a')}
+    </div>
+    <div style="background:#fff;border:1px solid #e4e7ec;border-radius:8px;padding:7px 12px;${compact?'':'margin-bottom:12px'};display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+      <span style="font-size:11px;font-weight:700;color:#374151">종합 일정 평가:</span>
+      <span style="font-size:12px;font-weight:700;color:${spiC}">${verdict}</span>
+      <button data-a="opEvmsBac" data-pid="${esc(pid)}" style="margin-left:auto;padding:4px 10px;font-size:10px;background:#1e40af;color:#fff;border:none;border-radius:4px;cursor:pointer">💰 계약금액(BAC) 입력</button>
+    </div>
+    ${compact?'':svg}
+    ${compact?'':`<div style="background:#fff;border:1px solid #e4e7ec;border-radius:8px;margin-top:12px;overflow:hidden">
+      <div style="padding:8px 12px;font-size:11px;font-weight:700;color:#374151;background:#f8fafc;border-bottom:1px solid #e4e7ec">대단락별 EVMS</div>
+      <table style="width:100%;border-collapse:collapse">
+        <thead><tr style="background:#f8fafc;border-bottom:1px solid #e4e7ec">
+          <th style="padding:5px 8px;font-size:9px;color:#6b7280;text-align:left">코드</th>
+          <th style="padding:5px 8px;font-size:9px;color:#6b7280;text-align:left">대단락</th>
+          <th style="padding:5px 8px;font-size:9px;color:#6b7280">가중치</th>
+          <th style="padding:5px 8px;font-size:9px;color:#6b7280">계획 PV</th>
+          <th style="padding:5px 8px;font-size:9px;color:#6b7280">실행 EV</th>
+          <th style="padding:5px 8px;font-size:9px;color:#6b7280">SV</th>
+          <th style="padding:5px 8px;font-size:9px;color:#6b7280">SPI</th>
+        </tr></thead>
+        <tbody>${rowsHtml}</tbody>
+      </table>
+    </div>`}
+    <div style="font-size:9px;color:#9ca3af;margin-top:8px;padding:0 2px">※ PV/EV는 가중치(공정 비중) 기반 가중평균 · 가중치 합 ${E.rows.reduce((a,r)=>a+r.wt,0)}% · 계약금액(BAC) 입력 시 금액(₩) 환산 · 실비(AC) 연동 시 CPI/EAC 산출 예정</div>
+  </div>`;
+}
+function _footer(){return`<div style="flex-shrink:0;font-size:9px;color:#9ca3af;text-align:right;padding:4px 8px 0">${_previewOnly?'<b style="color:#b45309">미리보기 — 저장되지 않습니다</b> · ':''}WBS 일정표 템플릿 · © 2026 crazy4eu (cwkim83) · 데이터는 이 브라우저(localStorage)에만 저장됩니다 · 백업은 「JSON 내보내기」</div>`;}
+function rWBS(){
+  const items=wVis();const fCnt=f=>f==="전체"?WBS.length:WBS.filter(w=>wCS(w).status===f).length;
+  // v28.4.6: 오늘 날짜 빨간선 (하드코딩 제거)
+  const tdp=dp(new Date().toISOString().slice(0,10));const mhdr=`<div class="mrow">${MN.map(m=>`<div class="mcl">${m}</div>`).join("")}</div>`;
+  
+  // ═══════════════════════════════════════════════════════════
+  // v28.4.17 ★ 통합 WBS 행 — 모든 컬럼을 하나의 <tr>에 (탭에 따라 CSS로 보이기/숨기기)
+  // 사용자 아이디어: 분할/트리/간트 모두 같은 table 사용 → 단차 원천 차단
+  // ═══════════════════════════════════════════════════════════
+  function wRowUnified(w,rowIdx){
+    const{pct,status}=wCS(w);
+    const sc=SS[status]||{bg:"#f3f4f6",c:"#6b7280"};
+    const ind=w.lv*12;const hc=hasC(w.id);
+    const eb=hc?`<button data-a="tgExp" data-id="${esc(w.id)}" style="width:13px;height:13px;border-radius:2px;background:#e4e7ec;border:none;cursor:pointer;font-size:8px;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0">${S.wexp[w.id]===false?"▶":"▼"}</button>`:`<span style="width:13px;display:inline-block"></span>`;
+    const memoIcon=w.memo?`<span title="${w.memo.replace(/"/g,'&quot;')}" style="font-size:9px;color:#1e40af;cursor:help;margin-left:3px">📝</span>`:"";
+    const vendorIcon=w.vendor?`<span title="담당 업체: ${w.vendor.replace(/"/g,'&quot;')}" style="font-size:9px;color:#1e40af;cursor:help;margin-left:2px">🏢</span>`:"";
+    const selCls=S.wsel?.id===w.id?"sel":"";
+    // 간트 막대 계산 — 자식이 있으면 후손들의 일정 범위(min s ~ max e)로 표시
+    let barS=w.s, barE=w.e;
+    if(hasC(w.id)){
+      const r=wRange(w.id);
+      if(r){barS=r.s; barE=r.e;}
+    }
+    const l=dp(barS),wd=Math.max(dp(barE)-l,.5);const fp=pct==null?0:pct;
+    const _expPct=expectedPctByDate(barS,barE);
+    const _fillBg=_expPct==null?"#16a34a":scheduleHealthGradient(fp-_expPct);
+    // v30: 메모 콜아웃 — 막대에 📝 점, 클릭 시 빨간 연결선 말풍선 (마스터 스케줄 콜아웃 스타일)
+    // v30.1: 헤더를 드래그하면 위치 이동 → memoDx/memoDy로 행에 저장(재렌더·저장에도 유지)
+    const _hasMemo=!!w.memo;
+    const _end=Math.min(l+wd,100);
+    const _esc=s=>String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;");
+    const _axo=w.memoAx||0; // v30.2: 연결점(빨간 점) 가로 오프셋 — 점 자체도 드래그로 이동 가능
+    const _memoDot=_hasMemo?`<span class="v28-memo-dot" data-dot="${esc(w.id)}" style="left:calc(${_end}% + ${esc(_axo)}px)" title="드래그: 연결점 이동 · 클릭: 메모 열기/닫기">📝</span>`:"";
+    let _memoCo="";
+    if(_hasMemo&&_memoOpen[w.id]){
+      const _bx=(_end>72?-232:22)+(w.memoDx||0); // 콜아웃 left(px, 막대 끝 기준) — 오른쪽 끝 막대는 기본 왼쪽 배치
+      const _by=16+(w.memoDy||0);                // 콜아웃 top(px)
+      const _ax=(_bx+200<0)?_bx+200:_bx;         // 연결선이 붙는 지점: 가까운 쪽 모서리
+      const _ay=_by-10+9;
+      _memoCo=`<svg class="v28-memo-line" data-line="${esc(w.id)}" style="left:${_end.toFixed(2)}%;top:10px;width:1px;height:1px"><line x1="${esc(_axo)}" y1="-7" x2="${esc(_ax)}" y2="${esc(_ay)}" stroke="#dc2626" stroke-width="1.6"/><circle cx="${esc(_axo)}" cy="-7" r="2.2" fill="#dc2626"/></svg>`
+        +`<div class="v28-memo-co" data-co="${esc(w.id)}" data-bx="${esc(_bx)}" data-by="${esc(_by)}" style="left:calc(${_end.toFixed(2)}% + ${esc(_bx)}px);top:${esc(_by)}px" onclick="if(!event.target.closest('[data-a]'))event.stopPropagation()">`
+        +`<div class="co-hd" data-codrag="${esc(w.id)}" title="드래그하면 위치를 옮길 수 있어요"><span>📝</span><span class="t">${_esc(w.name)}</span><button data-a="opMemoEd" data-id="${esc(w.id)}" title="메모 수정">✏</button><button data-a="tgMemoCo" data-id="${esc(w.id)}" title="닫기">✕</button></div><div class="co-bd">${_esc(w.memo)}</div></div>`;
+    }
+    const ganttBar=`<div style="position:relative;height:20px;background:#f1f5f9;border-radius:2px;width:100%;margin-top:5px"><div class="v28-bar-outer${_hasMemo?' has-memo':''}"${_hasMemo?` data-a="tgMemoCo" data-id="${esc(w.id)}" title="클릭: 메모 보기/닫기 · 우클릭: 메모 작성"`:""} style="left:${l}%;width:${wd}%"><div class="v28-bar-fill" style="width:${fp}%;background:${_fillBg}"></div></div><span class="v28-bar-label" style="left:${l}%;width:${wd}%">${fp}%</span>${_memoDot}${_memoCo}</div>`;
+    // 모든 컬럼을 한 행에 넣고 class로 표시 제어
+    return `<tr class="wbs-row ${selCls}" data-a="selW" data-id="${esc(w.id)}" data-id-row="${esc(w.id)}">
+      <td class="col-code"><div class="cell-inner"><span style="display:inline-flex;align-items:center;gap:3px;padding-left:${ind}px;white-space:nowrap"><span style="flex-shrink:0">${eb}</span><span style="font-weight:${w.lv===0?700:400};font-size:11px;color:#4a7fc1;white-space:nowrap">${esc(w.code)}</span></span></div></td>
+      <td class="col-name"><div class="cell-inner">${esc(w.name.slice(0,22))}${w.name.length>22?'…':''}${memoIcon}${vendorIcon}</div></td>
+      <td class="col-mgr"><div class="cell-inner" style="color:#6b7280;font-size:10px">${esc(w.mgr||'')}</div></td>
+      <td class="col-start"><div class="cell-inner" style="color:#6b7280;font-size:10px;white-space:nowrap">${esc(w.s||'')}</div></td>
+      <td class="col-end"><div class="cell-inner" style="color:#6b7280;font-size:10px;white-space:nowrap">${esc(w.e||'')}</div></td>
+      <td class="col-pct"><div class="cell-inner">${pct!==null?prg(pct):`<span style="font-size:10px;color:#d1d5db">—</span>`}</div></td>
+      <td class="col-status"><div class="cell-inner">${bdgS(status)}</div></td>
+      <td class="col-gantt"><div style="position:absolute;left:${tdp}%;top:0;bottom:0;width:2px;background:#ef4444;opacity:.7;z-index:4;pointer-events:none"></div>${rowIdx!=null?_curveSVG(rowIdx):''}<div class="cell-inner" style="padding:0 3px">${ganttBar}</div></td>
+      <td class="col-rem">${mvBtn(w.id).replace(/<td[^>]*>|<\/td>/g,'<div class="cell-inner" style="display:flex;align-items:center;justify-content:center">')+'</div>'}</td>
+    </tr>`;
+  }
+  // 이전 wRow / gRow 호환성 (다른 곳에서 호출 시 보호)
+  function wRow(w,fs=false){return wRowUnified(w);}
+  function gRow(w){return wRowUnified(w);}
+  
+  let ct="";
+  // v28.1: 반응형 달력 - 화면 폭으로부터 보일 칸 수와 칸 폭 자동 계산
+  const cal=v28CalView(S.wv==="split"?320:0);
+  const calCols=cal.cols, calCw=cal.cw;
+  const monthsTotal=v28Months().length;
+  const tableMinW=monthsTotal*calCw;
+  
+  // ═══════════════════════════════════════════════════════════
+  // v28.4.17 ★ 통합 WBS Table — 모든 탭 (split/tree/gantt) 같은 table 사용
+  // 사용자 발상: 하나의 table에 모든 컬럼, 탭에 따라 CSS class로 보이기/숨기기
+  // → 단차 원천 차단 (HTML이 자동으로 행 높이 같게 보장)
+  // ═══════════════════════════════════════════════════════════
+  const ms=v28Months();
+  // v28.4.45: 간트 본문 월 구분 세로선 — 막대/오늘선과 같은 dp() 좌표계로 정렬.
+  const _mGridStyle=(()=>{
+    const imgs=[],pos=[];
+    ms.forEach((mo,i)=>{
+      if(i===0)return;   // 첫 달 시작(왼쪽 끝)은 생략
+      const x=dp(`${mo.y}-${String(mo.m+1).padStart(2,"0")}-01`);
+      imgs.push("linear-gradient(#e2e8f0,#e2e8f0)");
+      pos.push(x.toFixed(2)+"% 0");
+    });
+    return imgs.length?`<style>.wbs-unified-tbl tbody td.col-gantt{background-image:${imgs.join(",")};background-position:${pos.join(",")};background-size:1px 100%;background-repeat:no-repeat}</style>`:"";
+  })();
+  // 월 헤더 cells (간트 영역 전용)
+  const monthHdrCells=ms.map((mo,i)=>{
+    const yChange=i===0||ms[i-1].y!==mo.y;
+    return `<th class="hdr-month${yChange?' v28-mcl-year':''}" style="min-width:${calCw}px;font-size:10px;font-weight:600;color:#6b7280;background:#f8fafc">${mo.label}</th>`;
+  }).join("");
+  
+  // ═══ Project 총 스케줄 요약 행 (1번 대단락 위) ═══
+  const _pid=S.selproj?.id;
+  const _tops=WBS.filter(w=>w.projId===_pid&&w.lv===0);
+  const projPct=_tops.length?Math.round(_tops.reduce((a,w)=>a+(wCS(w).pct||0),0)/_tops.length):0;
+  const _dated=WBS.filter(w=>w.projId===_pid&&w.s&&w.e);
+  const _sMin=_dated.length?_dated.map(w=>w.s).slice().sort()[0]:"";
+  const _eMax=_dated.length?_dated.map(w=>w.e).slice().sort().slice(-1)[0]:"";
+  const _pStat=projPct>=100?"완료":projPct>0?"진행중":"미시작";
+  const _pl=dp(_sMin), _pwd=Math.max(dp(_eMax)-_pl,.5);
+  // ═══ S-Curve 오버레이 좌표 (간트 막대 위, 전 행 관통) ═══
+  const _E=evmsCalc(_pid);
+  const _evX=dp(new Date().toISOString().slice(0,10));
+  const _N=1+items.length;  // 요약행 + 데이터행 수
+  const _ph=_N*100;                   // 전체 곡선 세로 좌표 (행당 100)
+  const _pvPts=(_sMin?`${dp(_sMin).toFixed(1)},${_ph} `:'')+_E.curve.map(p=>`${dp(p.date).toFixed(1)},${((100-p.pv)/100*_ph).toFixed(1)}`).join(' ');
+  const _evPts=`${(_sMin?dp(_sMin):0).toFixed(1)},${_ph} ${_evX.toFixed(1)},${((100-_E.ev)/100*_ph).toFixed(1)}`;
+  const _curveInner=`<polyline points="${_pvPts}" fill="none" stroke="#1d4ed8" stroke-width="2.5" vector-effect="non-scaling-stroke"/><polyline points="${_evPts}" fill="none" stroke="#16a34a" stroke-width="2.5" vector-effect="non-scaling-stroke"/>`;
+  const _curveSVG=idx=>`<svg viewBox="0 ${idx*100} 100 100" preserveAspectRatio="none" style="position:absolute;inset:0;width:100%;height:100%;z-index:3;pointer-events:none;overflow:hidden">${_curveInner}</svg>`;
+  const summaryRow=`<tr class="wbs-row" style="background:#eef3fb">
+      <td class="col-code"><div class="cell-inner"><span style="display:inline-flex;align-items:center;gap:3px;padding-left:2px"><span style="width:13px;display:inline-block"></span><span style="font-weight:800;font-size:11px;color:#1e40af">▣</span></span></div></td>
+      <td class="col-name"><div class="cell-inner" style="font-weight:800;color:#1e40af">Project 총 스케줄</div></td>
+      <td class="col-mgr"><div class="cell-inner" style="color:#6b7280;font-size:10px">${esc(S.selproj?.pm||'')}</div></td>
+      <td class="col-start"><div class="cell-inner" style="color:#374151;font-size:10px;white-space:nowrap">${esc(_sMin||'')}</div></td>
+      <td class="col-end"><div class="cell-inner" style="color:#374151;font-size:10px;white-space:nowrap">${esc(_eMax||'')}</div></td>
+      <td class="col-pct"><div class="cell-inner">${prg(projPct)}</div></td>
+      <td class="col-status"><div class="cell-inner">${bdgS(_pStat)}</div></td>
+      <td class="col-gantt"><div style="position:absolute;left:${tdp}%;top:0;bottom:0;width:2px;background:#ef4444;opacity:.7;z-index:4;pointer-events:none"></div>${_curveSVG(0)}<div class="cell-inner" style="padding:0 3px"><div style="position:relative;height:20px;background:#dbe6f7;border-radius:2px;width:100%;margin-top:5px"><div class="v28-bar-outer" style="left:${_pl}%;width:${_pwd}%;background:#c7d7f0;border:1px solid #1e40af"><div class="v28-bar-fill" style="width:${projPct}%;background:#1e40af"></div></div><span class="v28-bar-label" style="left:${_pl}%;width:${_pwd}%;font-weight:700">${projPct}%</span></div></div></td>
+      <td class="col-rem"><div class="cell-inner"></div></td>
+    </tr>`;
+  // 통합 table HTML (모든 컬럼 포함)
+  const unifiedTable=`
+    ${_mGridStyle}<style>.wbs-unified-tbl.wbs-view-gantt tbody td.col-name,.wbs-unified-tbl.wbs-view-gantt thead th.col-name{left:${_colW.code}px}</style>
+    <table class="wbs-unified-tbl wbs-view-${S.wv}" id="v284-wbs-unified" style="border-collapse:collapse;border-spacing:0;table-layout:fixed;width:100%;min-width:${tableMinW+600}px">
+      <colgroup>
+        <col class="col-code" style="width:${_colW.code}px"/>
+        <col class="col-name" style="width:${_colW.name}px"/>
+        <col class="col-mgr" style="width:${_colW.mgr}px"/>
+        <col class="col-start" style="width:${_colW.start}px"/>
+        <col class="col-end" style="width:${_colW.end}px"/>
+        <col class="col-pct" style="width:${_colW.pct}px"/>
+        <col class="col-status" style="width:${_colW.status}px"/>
+        <col class="col-gantt" style="min-width:${tableMinW}px"/>
+        <col class="col-rem" style="width:44px"/>
+      </colgroup>
+      <thead style="position:sticky;top:0;z-index:5;background:#f8fafc">
+        <tr class="hdr-row">
+          <th class="col-code">코드<span class="col-rsz" data-col="code" title="드래그로 폭 조절"></span></th>
+          <th class="col-name">작업명<span class="col-rsz" data-col="name" title="드래그로 폭 조절"></span></th>
+          <th class="col-mgr">담당자<span class="col-rsz" data-col="mgr" title="드래그로 폭 조절"></span></th>
+          <th class="col-start">시작일<span class="col-rsz" data-col="start" title="드래그로 폭 조절"></span></th>
+          <th class="col-end">완료일<span class="col-rsz" data-col="end" title="드래그로 폭 조절"></span></th>
+          <th class="col-pct">진도율<span class="col-rsz" data-col="pct" title="드래그로 폭 조절"></span></th>
+          <th class="col-status">상태<span class="col-rsz" data-col="status" title="드래그로 폭 조절"></span></th>
+          <th class="col-gantt" style="padding:0;position:relative">
+            <div style="position:absolute;left:${tdp}%;top:0;bottom:0;width:2px;background:#ef4444;opacity:.75;z-index:6;pointer-events:none"></div>
+            <div style="display:flex;width:100%;min-width:${tableMinW}px">${monthHdrCells.replace(/<th /g,'<div ').replace(/<\/th>/g,'</div>')}</div>
+          </th>
+          <th class="col-rem"></th>
+        </tr>
+      </thead>
+      <tbody>
+        ${summaryRow}${items.map((w,i)=>wRowUnified(w,i+1)).join("")}
+      </tbody>
+    </table>`;
+  
+  ct=(S.wv==="evms")
+    ? `<div style="background:#f8fafc;border-radius:8px;border:1px solid #e4e7ec;padding:8px">${evmsPanel(_pid)}</div>`
+    : `<div class="wbs-unified-wrap" style="position:relative;overflow:auto;background:#fff;border-radius:8px;border:1px solid #e4e7ec;flex:1;min-height:160px;max-height:none">
+    ${unifiedTable}
+  </div>`;
+  return`<div class="thdr"><div class="htitle">📊 ${esc(S.selproj?.name||"")} — WBS <span style="font-size:12px;color:#1e40af;font-weight:700;margin-left:6px">· 총 ${projPct}%</span> <span id="wbsRevBadge" style="font-size:11px;color:#7c3aed;font-weight:700;background:#f5f3ff;padding:2px 8px;border-radius:10px;margin-left:6px" title="개정 번호 — 행 추가·삭제나 시작·완료일이 바뀔 때마다 자동으로 1씩 올라갑니다">Rev. ${esc(_wbsRev||0)}</span><button class="v28-eb" data-a="opProj" title="프로젝트 이름·번호·발주처·담당자 수정">✏ 프로젝트 정보</button></div><span style="font-size:11px;color:#6b7280;display:flex;align-items:center;margin-right:auto">PM ${esc(S.selproj?.pm||"")}</span><div style="display:flex;gap:4px">${["split","tree","gantt","evms"].map(v=>`<button class="vb${S.wv===v?" on":""}" data-a="setWV" data-v="${v}">${v==="split"?"⊞ 분할":v==="tree"?"🌳 트리":v==="gantt"?"📊 간트":"📈 EVMS"}</button>`).join("")}</div><button class="addb" data-a="opWM">+ 추가</button><button class="v284-print-btn" data-a="v284Print" title="WBS 일정표 PDF 다운로드 (A3 가로)">📄 PDF</button><button class="v284-print-btn" data-a="v284Excel" style="background:#16a34a" title="WBS 일정표 Excel 다운로드 (편집 가능)">📊 Excel</button><button class="v284-print-btn" data-a="opNoteEdit" style="background:#7c3aed" title="PDF·Excel 하단 NOTE 편집">📝 NOTE</button><button class="v28-eb" data-a="v28Exp" title="전체 데이터를 JSON 파일로 저장 (백업·PC 간 이동)">📥 JSON 내보내기</button><button class="v28-eb" data-a="v28Imp" title="JSON 파일로 현재 데이터를 교체">📤 JSON 불러오기</button><button class="v28-eb" data-a="loadSample" title="가상의 사무실 이전 프로젝트를 불러와 사용법을 확인">🧪 예시 넣기</button></div>
+  <div class="fbar"><span style="font-size:10px;color:#9ca3af;margin-right:3px">필터:</span>${["전체","완료","진행중","미시작","지연"].map(f=>`<button class="fb${S.wf===f?" on":""}" data-a="setWF" data-f="${f}">${f}(${fCnt(f)})</button>`).join("")}</div>
+  <div class="cont">${(S.wv!=="evms")?`<div style="margin-bottom:10px;border:1px solid #e4e7ec;border-radius:8px;background:#f8fafc;overflow:hidden;flex-shrink:0">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:7px 12px;cursor:pointer" data-a="tgEvms"><span style="font-size:11px;font-weight:700;color:#1e40af">📈 EVMS 요약 (계획·실행·일정차이·SPI)</span><span style="font-size:11px;color:#6b7280">${S.evmsHide?'▶ 펼치기':'▼ 접기'}</span></div>
+    ${S.evmsHide?'':`<div style="padding:0 10px 10px">${evmsPanel(_pid,true)}</div>`}
+  </div>`:''}${ct}${rDetailPanel()}${v28WeeklySummary()}${_footer()}</div>`;
+}
+function rModals(){
+  let h="";
+  // v28.4.46: PDF/Excel 출력 레벨 선택 모달
+  if(S.expChoose){const _t=S.expChoose;h+=`<div class="ov"><div class="mdl" style="max-width:430px">
+      <div style="font-size:14px;font-weight:700;margin-bottom:4px;color:#1a2332">${_t==="pdf"?"📄 PDF":"📊 Excel"} 출력 범위 선택</div>
+      <div style="font-size:11px;color:#6b7280;margin-bottom:12px">어느 레벨까지 출력할지 선택하세요. 상위 레벨 진도율은 하위 전체를 반영한 값 그대로 나갑니다.</div>
+      ${[["0","대단락만 (Level 1)","1, 2, 3 …"],["1","중단락까지 (Level 2)","+ 1.1, 1.2 …"],["2","소단락까지 (Level 3)","+ 1.1.1, 1.1.2 …"],["99","전체 (세부단락 포함)","모든 레벨"]].map(([lv,label,ex])=>`
+        <button data-a="doExport" data-lv="${lv}" style="display:flex;justify-content:space-between;align-items:center;width:100%;padding:10px 14px;margin-bottom:6px;background:#f8fafc;border:1px solid #e4e7ec;border-radius:7px;cursor:pointer;font-size:12px;font-weight:700;color:#1a2332;box-sizing:border-box" onmouseover="this.style.background='#eef3fb';this.style.borderColor='#4a7fc1'" onmouseout="this.style.background='#f8fafc';this.style.borderColor='#e4e7ec'">
+          <span>${label}</span><span style="font-size:10px;color:#9ca3af;font-weight:400">${ex}</span>
+        </button>`).join("")}
+      <div style="display:flex;justify-content:flex-end;margin-top:4px"><button data-a="clExport" style="padding:5px 11px;background:#f3f4f6;border:none;border-radius:5px;cursor:pointer;font-size:11px">취소</button></div>
+    </div></div>`;}
+  if(S.wmod){const f=DRAFT.wform;
+    // v28.4.52: 현재 선택된 상위 그룹 라벨을 DRAFT 기준으로 계산 → 재렌더돼도 유지
+    const _pp=DRAFT.wform.parentId?WBS.find(x=>x.id===DRAFT.wform.parentId):null;
+    const _ppLabel=_pp?`${esc(_pp.code)} ${String(_pp.name).replace(/</g,"&lt;")} 아래 — ${lvName((_pp.lv||0)+1)}(Level ${(_pp.lv||0)+2}) 추가`:"— 대단락(Level 1)으로 추가 —";
+    h+=`<div class="ov"><div class="mdl"><div class="mdl-drag" style="font-size:14px;font-weight:700;margin-bottom:12px;color:#1a2332;cursor:move;display:flex;justify-content:space-between;align-items:center" title="드래그해서 창 이동">WBS 항목 추가 <span style="font-size:10px;color:#9ca3af;font-weight:400">⠿ 이동</span></div>
+      <div style="margin-bottom:7px"><div class="fl">상위 그룹 (추가 위치)</div>
+        <input type="hidden" data-draft="wform" data-k="parentId" value="${esc(DRAFT.wform.parentId||"")}">
+        <button type="button" id="wpParentBtn" onclick="wpOpenTree()" class="fi" style="text-align:left;cursor:pointer;background:#fff;display:flex;justify-content:space-between;align-items:center"><span>${_ppLabel}</span><span style="font-size:9px;color:#9ca3af">▼ 클릭해서 위치 선택</span></button>
+        <div id="wpTree" style="display:none;border:1.5px solid #c3d6f0;border-radius:6px;max-height:250px;overflow-y:auto;margin-top:4px;background:#fff;box-shadow:0 4px 12px rgba(0,0,0,.08)">
+          <div style="padding:7px 10px;border-bottom:1px solid #e4e7ec;cursor:pointer;font-size:11px;font-weight:700;color:#1e40af;background:#f8fafc" onclick="wpPick('','— 대단락(Level 1)으로 추가 —')" onmouseover="this.style.background='#eef3fb'" onmouseout="this.style.background='#f8fafc'">— 대단락(Level 1)으로 추가 —</div>
+          ${(()=>{
+            // 트리 렌더: 기본은 대단락만 노출, ▶ 클릭 시 그 아래 중단락/소단락 펼침 (DOM 토글, 재렌더 없음)
+            const _pid=S.selproj?.id;
+            const _row=(w,depth)=>{
+              const l=w.lv||0;
+              const kids=childW(w.id).filter(k=>(k.lv||0)<=2);
+              const pickLabel=`${w.code} ${w.name} 아래 — ${lvName(l+1)}(Level ${l+2}) 추가`;
+              return `<div style="display:flex;align-items:center;gap:5px;padding:6px 8px 6px ${10+depth*18}px;border-bottom:1px solid #f3f4f6">
+                ${kids.length?`<span id="wp-ar-${esc(w.id)}" onclick="wpToggle(${jsArg(w.id)},event)" style="cursor:pointer;width:15px;font-size:9px;color:#6b7280;flex-shrink:0;text-align:center;background:#f3f4f6;border-radius:3px;padding:1px 0">▶</span>`:`<span style="width:15px;flex-shrink:0"></span>`}
+                <span onclick="wpPick(${jsArg(w.id)},${jsArg(pickLabel)})" style="cursor:pointer;font-size:11px;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" onmouseover="this.style.color='#2563eb'" onmouseout="this.style.color=''"><b style="color:#4a7fc1">${esc(w.code)}</b> ${esc(w.name)} <span style="font-size:9px;color:#9ca3af">— ${lvName(l+1)} 추가</span></span>
+              </div>${kids.length?`<div id="wp-ch-${esc(w.id)}" style="display:none">${kids.map(k=>_row(k,depth+1)).join("")}</div>`:""}`;
+            };
+            return WBS.filter(w=>w.projId===_pid&&(w.lv||0)===0).map(t=>_row(t,0)).join("");
+          })()}
+        </div>
+      </div>
+      <div style="display:flex;gap:6px;margin-bottom:7px"><div style="flex:.4"><div class="fl">작업코드</div>${inp("wform","code","placeholder='자동'",f.code)}</div><div style="flex:1"><div class="fl">작업명</div>${inp("wform","name","",f.name)}</div></div><div style="margin-bottom:7px"><div class="fl">담당자</div>${inp("wform","mgr","",f.mgr)}</div><div style="display:flex;gap:6px;margin-bottom:7px"><div style="flex:1"><div class="fl">시작일</div>${inp("wform","s","type='date'",f.s)}</div><div style="flex:1"><div class="fl">완료일</div>${inp("wform","e","type='date'",f.e)}</div></div><div style="display:flex;gap:6px;margin-bottom:7px"><div style="flex:1"><div class="fl">상태</div>${sel("wform","status",["미시작","진행중","완료","지연"],f.status||"미시작")}</div></div><!-- v28.4.8: 담당 업체 + 메모 (MS Project Notes 스타일) --><div style="margin-bottom:7px"><div class="fl">담당 업체 <span style="font-size:9px;color:#9ca3af">— REMARK 컬럼 표시</span></div>${inp("wform","vendor","placeholder='협력사·외주 업체명 등'",f.vendor||"")}</div><div style="margin-bottom:10px"><div class="fl">메모 / 이벤트 <span style="font-size:9px;color:#9ca3af">— PDF 막대 옆 콜아웃</span></div><textarea data-draft="wform" data-k="memo" class="fi" rows="2" placeholder="작업 핵심 이벤트 메모 (예: 10/20 자재 입고 확인)" style="resize:vertical;font-family:inherit;width:100%;box-sizing:border-box">${esc(f.memo||"")}</textarea></div><div style="display:flex;gap:6px;justify-content:flex-end"><button data-a="clWM" style="padding:5px 11px;background:#f3f4f6;border:none;border-radius:5px;cursor:pointer;font-size:11px">취소</button><button data-a="svW" style="padding:5px 11px;background:#4a7fc1;color:#fff;border:none;border-radius:5px;cursor:pointer;font-size:11px;font-weight:600">저장</button></div></div></div>`;}
+  // v28.4.17: NOTE 편집 모달
+  if(S.noteEditMod){const curNote=S.selproj?.customNote||"";h+=`<div class="ov"><div class="mdl" style="max-width:560px"><div style="font-size:14px;font-weight:700;margin-bottom:10px;color:#1a2332">📝 PDF 하단 NOTE 편집</div><div style="font-size:11px;color:#6b7280;margin-bottom:8px;line-height:1.5">PDF 출력 시 하단에 표시될 NOTE 내용입니다. 한 줄에 하나씩 작성하세요. 비워두면 기본 메시지가 표시됩니다.</div><textarea id="noteEditTA" class="fi" rows="10" placeholder="예시:&#10;본 일정은 작성 시점 기준이며, 작업 변수에 따라 변경될 수 있다.&#10;일정 변경 시 관계자와 협의 후 변경한다.&#10;자재 입고일은 공급사 사정에 따라 달라질 수 있다." style="width:100%;box-sizing:border-box;resize:vertical;font-family:inherit;font-size:11px;line-height:1.5">${curNote.replace(/</g,'&lt;')}</textarea><div style="display:flex;gap:6px;justify-content:space-between;margin-top:10px"><button data-a="clNoteEdit" style="padding:5px 11px;background:#f3f4f6;border:none;border-radius:5px;cursor:pointer;font-size:11px">취소</button><div style="display:flex;gap:6px"><button data-a="resetNote" style="padding:5px 11px;background:#fef3c7;color:#92400e;border:none;border-radius:5px;cursor:pointer;font-size:11px">🔄 기본값으로</button><button data-a="svNoteEdit" style="padding:5px 14px;background:#7c3aed;color:#fff;border:none;border-radius:5px;cursor:pointer;font-size:11px;font-weight:600">💾 저장</button></div></div></div></div>`;}
+  if(S.projMod){const f=DRAFT.proj;h+=`<div class="ov"><div class="mdl">
+      <div class="mdl-drag" style="font-size:14px;font-weight:700;margin-bottom:12px;color:#1a2332;cursor:move" title="드래그해서 창 이동">프로젝트 정보</div>
+      <div style="margin-bottom:7px"><div class="fl">프로젝트 이름</div>${inp("proj","name","",f.name)}</div>
+      <div style="display:flex;gap:6px;margin-bottom:7px"><div style="flex:1"><div class="fl">번호 (PDF·Excel 우측 상단)</div>${inp("proj","no","",f.no)}</div><div style="flex:1"><div class="fl">PM · 작성자</div>${inp("proj","pm","",f.pm)}</div></div>
+      <div style="margin-bottom:10px"><div class="fl">발주처 · 고객</div>${inp("proj","client","",f.client)}</div>
+      <div style="display:flex;gap:6px;justify-content:flex-end"><button data-a="clProj" style="padding:5px 11px;background:#f3f4f6;border:none;border-radius:5px;cursor:pointer;font-size:11px">취소</button><button data-a="svProj" style="padding:5px 11px;background:#4a7fc1;color:#fff;border:none;border-radius:5px;cursor:pointer;font-size:11px;font-weight:600">저장</button></div>
+    </div></div>`;}
+  return h;
+}
+function R(){
+  document.getElementById("app").innerHTML='<div class="main">'+rWBS()+'</div>'+rModals();
+  document.querySelectorAll("[data-draft]").forEach(el=>{el.oninput=()=>{DRAFT[el.dataset.draft][el.dataset.k]=el.value;};});
+}
+function act(a,d){
+  switch(a){
+    case"setWV":us({wv:d.v});break;case"setWF":us({wf:d.f});break;
+    case"opProj":{DRAFT.proj={name:S.selproj?.name||"",no:S.selproj?.no||"",client:S.selproj?.client||"",pm:S.selproj?.pm||""};us({projMod:true});}break;
+    case"clProj":us({projMod:false});break;
+    case"svProj":{
+      const g=k=>document.querySelector(`[data-draft="proj"][data-k="${k}"]`)?.value||"";
+      const upd={name:g("name").trim()||"새 프로젝트",no:g("no").trim(),client:g("client").trim(),pm:g("pm").trim()};
+      PROJS=PROJS.map(p=>p.id===S.selproj.id?{...p,...upd}:p);
+      us({projMod:false,selproj:PROJS.find(p=>p.id===S.selproj.id)});
+    }break;
+    case"loadSample":{
+      if(WBS.length&&!confirm("지금 화면의 데이터가 예시로 교체됩니다.\n계속하시겠습니까?\n(먼저 「JSON 내보내기」로 백업해 두면 안전합니다)"))break;
+      _applyData(_sampleData());addLog("🧪 예시를 불러왔습니다","ok");R();
+    }break;
+    case"tgEvms":us(s=>({...s,evmsHide:!s.evmsHide}));break;
+    case"tgWeekly":us(s=>({...s,weeklyHide:s.weeklyHide===false?true:false}));break;
+    case"opEvmsBac":{const cur=(S.evmsBac&&S.evmsBac[d.pid])||0;const v=prompt("계약금액(BAC)을 원 단위로 입력하세요 (예: 2000000000)",cur||"");if(v!==null){const n=Number(String(v).replace(/[^0-9.]/g,''))||0;us(s=>({...s,evmsBac:{...(s.evmsBac||{}),[d.pid]:n}}));}}break;
+    case"tgExp":us(s=>({...s,wexp:{...s.wexp,[d.id]:s.wexp[d.id]===false}}));break;
+    case"selW":{const w=WBS.find(x=>x.id===d.id);us({wsel:S.wsel?.id===w?.id?null:w,wedit:false});break;}
+    // v30: 간트 막대 클릭 → 메모 콜아웃 토글 / 콜아웃 ✏ → 메모 편집
+    case"tgMemoCo":{if(_memoOpen[d.id])delete _memoOpen[d.id];else _memoOpen[d.id]=true;us({});break;} // us() 경유 — 스크롤 위치 유지
+    case"opMemoEd":{openMemoEditor(d.id);break;}
+    case"clrW":us({wsel:null,wedit:false});break;
+    case"delW":{
+      const wid=d.id;const wi=WBS.findIndex(x=>x.id===wid);if(wi<0)break;
+      const w=WBS[wi];
+      // v28.4.33: 하위 항목은 parentId 필드가 아니라 배열 순서+lv로 판단되는 구조(childW()/wRange()와 동일 방식).
+      // 예전 코드는 존재하지 않는 x.parentId를 참조해 항상 children.length===0으로 나와, 대단락 삭제 시
+      // "하위 N개 포함 삭제" 확인창은 뜨지만 실제로는 소단락이 하나도 안 지워지고 고아로 남는 버그였음.
+      const delIds=new Set([wid]);
+      for(let j=wi+1;j<WBS.length;j++){
+        if(WBS[j].projId!==w.projId)break;
+        if(WBS[j].lv<=w.lv)break;
+        delIds.add(WBS[j].id);
+      }
+      const childCount=delIds.size-1;
+      const msg=childCount
+        ?`"${w.code} ${w.name}" 및 하위 ${childCount}개 항목을 모두 삭제합니다.\n이 작업은 되돌릴 수 없습니다. 계속할까요?`
+        :`"${w.code} ${w.name}" 항목을 삭제합니다.\n이 작업은 되돌릴 수 없습니다. 계속할까요?`;
+      if(!confirm(msg))break;
+      WBS=WBS.filter(x=>!delIds.has(x.id));
+      // v29.33: 삭제 후 코드 재부여 — 대단락 4를 지우면 기존 5·6·7이 4·5·6으로 당겨져야 함
+      // (이전엔 renumberWBS 호출이 빠져 삭제된 번호가 결번으로 남았음)
+      renumberWBS();
+      addLog(`🗑 삭제: ${w.code} ${w.name}${childCount?' (하위 '+childCount+'개 포함)':''}`,"warn");
+      us({wsel:null,wedit:false});
+      break;}
+    case"dupW":{
+      // v28.4.35: WBS 행 복사 — 선택 행과 그 하위 서브트리 전체를 같은 일정·속성으로 복제해
+      // 바로 아래에 삽입. 이름은 "(복사)" 접미를 붙여 구분(사용자가 곧바로 수정). 진행 상태 복사 여부는 아래에서 묻는다.
+      const wid=d.id;const wi=WBS.findIndex(x=>x.id===wid);if(wi<0)break;
+      const src=WBS[wi];
+      // 서브트리 범위(자신 + 더 깊은 레벨 연속) 수집
+      const block=[src];
+      for(let j=wi+1;j<WBS.length;j++){
+        if(WBS[j].projId!==src.projId)break;
+        if(WBS[j].lv<=src.lv)break;
+        block.push(WBS[j]);
+      }
+      // 삽입 위치 = 서브트리 끝 바로 다음
+      const insAt=wi+block.length;
+      const stamp=Date.now();
+      // v28.4.38: 진행 상태(진도율·상태)도 같이 복사할지 선택 — 같은 장비를 여러 대 만들 때
+      // 진행 상황이 거의 같으면 그대로 복사하는 편이 훨씬 빠름 (사용자 요청).
+      const keepProgress=confirm(
+        `진행 상태(진도율·상태)도 함께 복사할까요?\n\n`+
+        `· [확인] = 원본의 진도율·상태 그대로 복사 (진행된 스케줄 복사)\n`+
+        `· [취소] = 미시작 0%로 초기화해서 복사\n\n`+
+        `※ 하위 행의 진도율은 항상 하위 평균으로 다시 계산됩니다.`
+      );
+      const copies=block.map((w0,k)=>{
+        // v28.4.41: pctManual 고정은 "자식 없는 말단 행"에만 — 부모 행에 고정하면 이후
+        // 자식들의 실제 진행을 바꿔도 부모 막대가 복사 시점 %에 영원히 붙박이가 되는 버그
+        // (복사한 행 전부가 같은 %로 보이던 원인). 부모는 자식 롤업으로 자동 계산돼야 한다.
+        const isLeaf=!(block[k+1]&&(block[k+1].lv||0)>(w0.lv||0));
+        return {
+          ...w0,
+          id:"w"+stamp+"_"+k,
+          name:k===0?`${w0.name} (복사)`:w0.name,   // 최상위만 (복사) 표시, 하위는 이름 그대로
+          ...(keepProgress?{}:{status:"미시작",pct:0,pctManual:null}),   // 선택에 따라 진척·상태 초기화
+          // 부모 행에 이미 있던 수동 고정값도 복사본에는 물려주지 않는다 (자식 롤업이 진실)
+          ...(!isLeaf?{pctManual:null}:{})
+        };
+      });
+      WBS.splice(insAt,0,...copies);
+      renumberWBS();
+      const newTop=WBS.find(x=>x.id===copies[0].id);
+      addLog(`📋 복사: ${src.code} ${src.name}${block.length>1?' (하위 '+(block.length-1)+'개 포함)':''} → ${newTop?newTop.code:''}`,"ok");
+      // 복사된 최상위 행을 자동 선택 + 바로 수정 모드로 열어 이름·항목을 곧장 고칠 수 있게
+      us({wsel:newTop,wedit:true});
+      break;}
+    case"stWEdit":us({wedit:true});break;case"clWEdit":us({wedit:false});break;
+    case"svWEdit":{
+      const id=S.wsel?.id;if(!id)return;
+      const cur=S.wsel;
+      const q=k=>document.querySelector(`[data-draft="wedit"][data-k="${k}"]`)?.value;
+      const name=(q("name")||"").trim()||cur.name,mgr=q("mgr")??cur.mgr,s=q("s")??cur.s,e=q("e")??cur.e;
+      let status=q("status")??cur.status;
+      const vendor=q("vendor")??cur.vendor??"",memo=q("memo")??cur.memo??"";
+      // 수동 진도율 — 비우면 null(자동), 값이 있으면 0~100. 하위 행이 있는 행은 입력 자체를 받지 않는다 (상위는 항상 하위 평균).
+      const _pmRaw=q("pctManual");
+      let pctManual=(hasC(id)||_pmRaw==null||_pmRaw.trim()==="")?null:Math.max(0,Math.min(100,Math.round(Number(_pmRaw))||0));
+      // 진도율만 고치고 상태는 그대로면 상태를 진도율에 맞춘다 (50%인데 '미시작'으로 뜨는 것 방지)
+      if(pctManual!=null&&status===cur.status&&status!=="지연")status=pctManual>=100?"완료":pctManual>0?"진행중":"미시작";
+      // 상태를 직접 완료/미시작으로 바꿨으면 진도율도 100/0 으로 맞춘다
+      if(pctManual!=null&&status!==cur.status&&(status==="완료"||status==="미시작"))pctManual=status==="완료"?100:0;
+      WBS=WBS.map(w=>w.id===id?{...w,name,mgr,s,e,status,vendor,memo,pctManual}:w);
+      const updated=WBS.find(w=>w.id===id);
+      addLog(`✏ 수정됨: ${updated.code} ${updated.name}${pctManual!=null?' [진도율 '+pctManual+'%]':''}${memo?' [메모]':''}${vendor?' ['+vendor+']':''}`,"ok");
+      us({wedit:false,wsel:updated});break;}
+    case"mvW":moveWBS(d.id,d.dir==="up"?-1:1);break;
+    case"opWM":{DRAFT.wform={code:"",name:"",mgr:"",s:"",e:"",status:"미시작",parentId:"",vendor:"",memo:""};us({wmod:true});}break;
+    case"clWM":us({wmod:false});break;
+    case"svW":{
+      const g=k=>document.querySelector(`[data-draft="wform"][data-k="${k}"]`)?.value||"";
+      const n=g("name");
+      if(!n){us({});break;}
+      const pg=g("parentId");
+      const curPid=S.selproj?.id||_wbsPid;
+      // 다단계(3레벨 이상): 상위 그룹은 어느 레벨이든 고를 수 있다. 새 항목 레벨 = 부모 레벨 + 1, 부모가 없으면 대단락(lv0).
+      const parentRow=pg?WBS.find(w=>w.id===pg):null;
+      const newRow={id:"w"+Date.now(),code:g("code")||"?",name:n,mgr:g("mgr"),s:g("s"),e:g("e"),status:g("status")||"미시작",lv:parentRow?(parentRow.lv||0)+1:0,projId:curPid,vendor:g("vendor"),memo:g("memo")};
+      if(parentRow){
+        // 부모의 서브트리 끝(부모보다 얕거나 같은 레벨이 처음 나오는 위치) 바로 앞에 삽입
+        let j=WBS.findIndex(w=>w.id===pg)+1;
+        while(j<WBS.length&&(WBS[j].lv||0)>(parentRow.lv||0))j++;
+        WBS.splice(j,0,newRow);
+      }else WBS.push(newRow);
+      renumberWBS();
+      addLog("WBS 추가: "+n,"ok");
+      us({wmod:false});
+      break;}
+  }
+}
+document.addEventListener("click",e=>{const el=e.target.closest("[data-a]");if(!el)return;e.stopPropagation();act(el.dataset.a,el.dataset);});
+// ═══ v30.1: 메모 콜아웃 드래그 — 헤더를 잡고 이동, 놓으면 위치(memoDx/Dy)가 행에 저장 ═══
+let _coDrag=null;
+document.addEventListener("mousedown",e=>{
+  const hd=e.target.closest("[data-codrag]");
+  if(!hd||e.target.closest("button"))return;
+  const co=hd.closest(".v28-memo-co");
+  const line=co.parentElement.querySelector(`svg[data-line="${hd.dataset.codrag}"] line`);
+  _coDrag={id:hd.dataset.codrag,co,line,sx:e.clientX,sy:e.clientY,bx:+co.dataset.bx,by:+co.dataset.by,ddx:0,ddy:0};
+  co.classList.add("dragging");
+  e.preventDefault();
+});
+document.addEventListener("mousemove",e=>{
+  if(!_coDrag)return;
+  const d=_coDrag;
+  d.ddx=e.clientX-d.sx; d.ddy=e.clientY-d.sy;
+  d.co.style.transform=`translate(${d.ddx}px,${d.ddy}px)`;
+  if(d.line){
+    const nbx=d.bx+d.ddx, nby=d.by+d.ddy;
+    const ax=(nbx+200<0)?nbx+200:nbx;
+    d.line.setAttribute("x2",ax); d.line.setAttribute("y2",nby-10+9);
+  }
+});
+document.addEventListener("mouseup",()=>{
+  if(!_coDrag)return;
+  const d=_coDrag;_coDrag=null;
+  d.co.classList.remove("dragging");
+  if(Math.abs(d.ddx)<3&&Math.abs(d.ddy)<3){d.co.style.transform="";return;} // 클릭 수준이면 이동 취소
+  WBS=WBS.map(x=>x.id===d.id?{...x,memoDx:(x.memoDx||0)+d.ddx,memoDy:(x.memoDy||0)+d.ddy}:x);
+  us({}); // 재렌더 + 기존 저장 파이프라인으로 위치 영구 저장
+});
+// ═══ v30.2: 연결점(빨간 📝 점) 드래그 — 가로로 끌어 연결선 시작점 이동(memoAx 저장), 살짝 클릭은 메모 토글 ═══
+let _dotDrag=null;
+function _eatNextClick(){ // 드래그 직후 발생하는 click이 행 선택(selW)으로 번지지 않게 1회 차단
+  const f=ev=>{ev.stopPropagation();ev.preventDefault();};
+  document.addEventListener("click",f,true);
+  setTimeout(()=>document.removeEventListener("click",f,true),80);
+}
+document.addEventListener("mousedown",e=>{
+  const dot=e.target.closest("[data-dot]");
+  if(!dot)return;
+  const wrap=dot.parentElement;
+  const svg=wrap.querySelector(`svg[data-line="${dot.dataset.dot}"]`);
+  const w=WBS.find(x=>x.id===dot.dataset.dot);
+  _dotDrag={id:dot.dataset.dot,dot,line:svg?svg.querySelector("line"):null,circle:svg?svg.querySelector("circle"):null,base:(w&&w.memoAx)||0,sx:e.clientX,ddx:0};
+  e.preventDefault();e.stopPropagation();
+});
+document.addEventListener("mousemove",e=>{
+  if(!_dotDrag)return;
+  const d=_dotDrag;d.ddx=e.clientX-d.sx;
+  d.dot.style.transform=`translateX(calc(-50% + ${d.ddx}px))`;
+  const nx=d.base+d.ddx;
+  if(d.line)d.line.setAttribute("x1",nx);
+  if(d.circle)d.circle.setAttribute("cx",nx);
+});
+document.addEventListener("mouseup",()=>{
+  if(!_dotDrag)return;
+  const d=_dotDrag;_dotDrag=null;
+  _eatNextClick();
+  if(Math.abs(d.ddx)<3){d.dot.style.transform="";act("tgMemoCo",{id:d.id});return;} // 클릭 → 메모 토글
+  WBS=WBS.map(x=>x.id===d.id?{...x,memoAx:(x.memoAx||0)+d.ddx}:x);
+  us({});
+});
+// ═══ v30: 간트 메모 콜아웃 — 우클릭 작성 ═══
+document.addEventListener("contextmenu",e=>{
+  const cell=e.target.closest("td.col-gantt");if(!cell)return;
+  const tr=e.target.closest("tr[data-id-row]");if(!tr)return;
+  e.preventDefault();
+  openMemoEditor(tr.getAttribute("data-id-row"));
+});
+// 메모 작성/수정 팝업 — 저장하면 자동 저장 파이프라인(v28Save)을 탄다
+function openMemoEditor(wid){
+  const w=WBS.find(x=>x.id===wid);if(!w)return;
+  document.getElementById("wbsMemoEd")?.remove();
+  const _e=s=>String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;");
+  const ov=document.createElement("div");
+  ov.id="wbsMemoEd";
+  ov.style.cssText="position:fixed;inset:0;background:rgba(15,23,42,.45);z-index:9999;display:flex;align-items:center;justify-content:center";
+  ov.innerHTML=`<div style="background:#fff;border-radius:10px;padding:16px;width:440px;max-width:92vw;box-shadow:0 10px 40px rgba(0,0,0,.3)">
+    <div style="font-size:13px;font-weight:800;color:#1a2332;margin-bottom:2px">📝 메모 / 이벤트 — ${_e(w.code)} ${_e(w.name)}</div>
+    <div style="font-size:10px;color:#6b7280;margin-bottom:8px">간트 막대 클릭 시 말풍선으로 표시되고, PDF 콜아웃에도 나갑니다.</div>
+    <textarea id="wbsMemoTA" rows="5" style="width:100%;box-sizing:border-box;border:1px solid #c3d6f0;border-radius:6px;padding:8px;font-size:12px;font-family:inherit;line-height:1.5;resize:vertical;outline:none" placeholder="예:&#10;1. 자재 입고 지연&#10;2. 외주 업체 일정 재협의">${_e(w.memo)}</textarea>
+    <div style="display:flex;gap:6px;margin-top:10px">
+      ${w.memo?`<button id="wbsMemoDel" style="padding:6px 12px;background:#fee2e2;color:#dc2626;border:none;border-radius:5px;cursor:pointer;font-size:11px;font-weight:600">🗑 메모 삭제</button>`:""}
+      <span style="flex:1"></span>
+      <button id="wbsMemoCancel" style="padding:6px 12px;background:#f3f4f6;border:none;border-radius:5px;cursor:pointer;font-size:11px">취소</button>
+      <button id="wbsMemoSave" style="padding:6px 16px;background:#dc2626;color:#fff;border:none;border-radius:5px;cursor:pointer;font-size:11px;font-weight:700">💾 저장</button>
+    </div></div>`;
+  ov.addEventListener("click",e=>{if(e.target===ov)ov.remove();});
+  document.body.appendChild(ov);
+  const ta=document.getElementById("wbsMemoTA");ta.focus();ta.setSelectionRange(ta.value.length,ta.value.length);
+  document.getElementById("wbsMemoCancel").onclick=()=>ov.remove();
+  const _apply=val=>{
+    const had=!!w.memo;
+    WBS=WBS.map(x=>x.id===wid?{...x,memo:val}:x);
+    if(val)_memoOpen[wid]=true;else delete _memoOpen[wid];
+    addLog(val?`📝 메모 ${had?"수정":"작성"}: ${w.code} ${w.name}`:`🗑 메모 삭제: ${w.code} ${w.name}`,val?"ok":"warn");
+    ov.remove();
+    us(S.wsel&&S.wsel.id===wid?{wsel:WBS.find(x=>x.id===wid)}:{});
+  };
+  document.getElementById("wbsMemoSave").onclick=()=>_apply(ta.value.trim());
+  const _del=document.getElementById("wbsMemoDel");
+  if(_del)_del.onclick=()=>{if(confirm("이 작업의 메모를 삭제할까요?"))_apply("");};
+}
+window.openMemoEditor=openMemoEditor;
+
+// ═══════════════════════════════════════════════════════════
+// v28.0 신규 모듈: 주간 자동 정리 + localStorage + JSON I/O
+// ═══════════════════════════════════════════════════════════
+function v28WeeklySummary(){
+  if(!S.selproj)return"";
+  const today=new Date();
+  // v28.4.1: 현재 선택된 프로젝트의 WBS만 (projId 필터)
+  const curPid=S.selproj.id;
+  const items=WBS.filter(w=>w.lv>=0&&w.projId===curPid);
+  // 진행 지연: 오늘 > 시작일 && 진척률 50% 미만 && 상태 != 완료
+  const delays=items.filter(w=>{
+    if(!w.s||!w.e)return false;
+    const{pct,status}=wCS(w);
+    if(status==="완료")return false;
+    const sd=new Date(w.s),ed=new Date(w.e);
+    if(today<sd)return false;
+    // 계획 진척률 vs 실제 진척률
+    const planned=Math.min(100,Math.max(0,(today-sd)/(ed-sd)*100));
+    return pct!==null && (planned-pct)>=20;
+  }).slice(0,30);
+  // 이번주 완료: 종료일이 이번주(월~일)이고 상태 완료
+  const wkStart=new Date(today);wkStart.setDate(today.getDate()-((today.getDay()+6)%7));wkStart.setHours(0,0,0,0);
+  const wkEnd=new Date(wkStart);wkEnd.setDate(wkStart.getDate()+6);wkEnd.setHours(23,59,59);
+  const wkDone=items.filter(w=>{const{status}=wCS(w);if(status!=="완료")return false;if(!w.e)return false;const ed=new Date(w.e);return ed>=wkStart&&ed<=wkEnd;}).slice(0,30);
+  // 차주 시작: 시작일이 다음주
+  const nxStart=new Date(wkEnd);nxStart.setDate(wkEnd.getDate()+1);nxStart.setHours(0,0,0,0);
+  const nxEnd=new Date(nxStart);nxEnd.setDate(nxStart.getDate()+6);nxEnd.setHours(23,59,59);
+  const nxStartItems=items.filter(w=>{if(!w.s)return false;const sd=new Date(w.s);return sd>=nxStart&&sd<=nxEnd;}).slice(0,30);
+  
+  const fmtDate=d=>d.toISOString().slice(0,10);
+  const nextMon=new Date(wkEnd);nextMon.setDate(wkEnd.getDate()+1);
+  const collapsed=S.weeklyHide!==false; // 기본 접힘 → 간트 공간 확보
+  const hdr=`<div class="v28-wsum-hdr" data-a="tgWeekly" style="cursor:pointer">
+      <div class="v28-wsum-title">📋 주간 자동 정리${collapsed?` <span style="font-size:10px;color:#6b7280;font-weight:500">(지연 ${delays.length} · 완료 ${wkDone.length} · 차주 ${nxStartItems.length})</span>`:''}</div>
+      <div class="v28-wsum-meta">${collapsed?'▶ 펼치기':`생성: ${fmtDate(today)} · 발표: ${fmtDate(nextMon)} 월요회의　▼ 접기`}</div>
+    </div>`;
+  if(collapsed)return `<div class="v28-wsum" style="flex-shrink:0">${hdr}</div>`;
+  return `<div class="v28-wsum" style="flex-shrink:0">
+    ${hdr}
+    <div class="v28-wsum-grid">
+      <div class="v28-wsum-sec">
+        <div class="v28-wsum-sec-ttl" style="color:#dc2626">⚠️ 진행 지연 (${delays.length}건)</div>
+        <div class="v28-wsum-list">${delays.length===0?'<div class="v28-wsum-em">— 지연 없음 —</div>':delays.map(w=>{const{pct}=wCS(w);return `<div class="v28-wsum-it">• <b>${esc(w.code)}</b> ${esc(w.name.slice(0,18))} — ${pct||0}% (계획 ${Math.round((new Date()-new Date(w.s))/(new Date(w.e)-new Date(w.s))*100)}%)</div>`;}).join("")}</div>
+      </div>
+      <div class="v28-wsum-sec">
+        <div class="v28-wsum-sec-ttl" style="color:#16a34a">✅ 이번주 완료 (${wkDone.length}건)</div>
+        <div class="v28-wsum-list">${wkDone.length===0?'<div class="v28-wsum-em">— 없음 —</div>':wkDone.map(w=>`<div class="v28-wsum-it">• <b>${esc(w.code)}</b> ${esc(w.name.slice(0,18))} 100%</div>`).join("")}</div>
+      </div>
+      <div class="v28-wsum-sec">
+        <div class="v28-wsum-sec-ttl" style="color:#3a6bb5">📅 차주 시작 (${nxStartItems.length}건)</div>
+        <div class="v28-wsum-list">${nxStartItems.length===0?'<div class="v28-wsum-em">— 없음 —</div>':nxStartItems.map(w=>`<div class="v28-wsum-it">• <b>${esc(w.code)}</b> ${esc(w.name.slice(0,18))} ${esc(w.s.slice(5))}</div>`).join("")}</div>
+      </div>
+    </div>
+  </div>`;
+}
+
+// ═══════════════════════════════════════════════════════════
+// 저장 — 이 브라우저의 localStorage (서버 없음).  백업·PC 간 이동은 「JSON 내보내기/불러오기」.
+// ═══════════════════════════════════════════════════════════
+const _LS_KEY="wbs_template_v1";
+let _wbsPid=null,_wbsRev=0;
+let _wbsMasterLoaded=false;   // 불러오기가 끝나기 전엔 저장 금지 — 빈 화면이 기존 데이터를 덮어쓰는 사고 방지
+let _previewOnly=false;       // ?sample=1 — 예시를 보기만 하고 저장하지 않는다
+let _lastSavedSig=null,_lastRevSig=null,_saveErrShown=false;
+// Rev(개정) 판정: 행 구성(추가·삭제)과 시작·완료일이 바뀔 때만 올린다. 진도율·이름·메모 변경은 Rev 유지.
+const _revSigOf=rows=>JSON.stringify(rows.map(w=>[w.id,w.s||"",w.e||""]));
+// 하위 행이 있는 행은 pctManual 을 갖지 않는다(상위 값이 롤업을 얼리던 v28.4.41 버그) — 저장 때마다 비운다.
+function _dropParentManual(){
+  for(let i=0;i<WBS.length-1;i++){
+    if(WBS[i].pctManual!=null&&WBS[i+1].projId===WBS[i].projId&&(WBS[i+1].lv||0)>(WBS[i].lv||0))WBS[i]={...WBS[i],pctManual:null};
+  }
+}
+function v28Save(){
+  if(!_wbsMasterLoaded||_previewOnly||!_wbsPid)return;
+  _dropParentManual();
+  const data={PROJS,WBS,MITEM,evmsBac:S.evmsBac||{}};
+  const sig=JSON.stringify(data);
+  if(sig===_lastSavedSig)return;            // 바뀐 것이 없으면 쓰지 않는다
+  _lastSavedSig=sig;
+  const rs=_revSigOf(WBS);
+  if(_lastRevSig!==null&&rs!==_lastRevSig){
+    _wbsRev++;addLog(`📌 Rev.${_wbsRev}`,"info");
+    const b=document.getElementById("wbsRevBadge");if(b)b.textContent="Rev. "+_wbsRev;
+  }
+  _lastRevSig=rs;
+  try{localStorage.setItem(_LS_KEY,JSON.stringify({...data,rev:_wbsRev,savedAt:Date.now()}));}
+  catch(e){
+    _lastSavedSig=null;   // 다음 편집 때 다시 시도
+    if(!_saveErrShown){_saveErrShown=true;alert("이 브라우저에 저장하지 못했습니다 ("+(e.message||e)+").\n지금 「JSON 내보내기」로 백업해 두세요.");}
+  }
+}
+// R() 호출 시마다 자동 저장 (디바운스 400ms). 탭을 닫기 직전 편집도 놓치지 않게 pagehide 에서 한 번 더.
+let v28SaveTimer=null;
+const _origR=R;R=function(){_origR.apply(this,arguments);clearTimeout(v28SaveTimer);v28SaveTimer=setTimeout(v28Save,400);};
+window.addEventListener("pagehide",()=>{clearTimeout(v28SaveTimer);v28Save();});
+
+// JSON 내보내기 — 파일명 WBS_<프로젝트명>_<날짜>.json
+const _fnBase=()=>"WBS_"+(String(S.selproj?.name||"프로젝트").replace(/[\\/:*?"<>|]/g," ").replace(/\s+/g," ").trim()||"프로젝트");
+function v28Export(){
+  const payload={format:"wbs-template",ver:1,PROJS,WBS,MITEM,rev:_wbsRev,evmsBac:S.evmsBac||{},exportedAt:new Date().toISOString()};
+  const blob=new Blob([JSON.stringify(payload,null,2)],{type:"application/json"});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement("a");
+  a.href=url;a.download=`${_fnBase()}_${new Date().toISOString().slice(0,10)}.json`;
+  document.body.appendChild(a);a.click();document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  addLog("📥 JSON 내보내기 완료","ok");
+}
+
+// JSON 불러오기 — 현재 데이터를 파일 내용으로 교체
+function v28Import(){
+  const inp=document.createElement("input");
+  inp.type="file";inp.accept=".json,application/json";
+  inp.onchange=async e=>{
+    const f=e.target.files[0];if(!f)return;
+    try{
+      const d=JSON.parse(await f.text());
+      if(!d||!Array.isArray(d.WBS))throw new Error("WBS 일정표 JSON 파일이 아닙니다 (WBS 목록이 없습니다).");
+      if(!confirm(`불러오면 현재 데이터가 교체됩니다.\n파일: ${f.name}\n계속하시겠습니까?`))return;
+      const projs=(Array.isArray(d.PROJS)&&d.PROJS.length)?d.PROJS:[_newProject(d.WBS[0]&&d.WBS[0].projId)];
+      _applyData({PROJS:projs,WBS:d.WBS,MITEM:d.MITEM,rev:d.rev,evmsBac:d.evmsBac});
+      addLog("📤 JSON 불러오기 완료: "+f.name,"ok");
+      R();
+    }catch(err){alert("불러오기 실패: "+err.message);addLog("📤 불러오기 실패","err");}
+  };
+  inp.click();
+}
+
+// act 핸들러 확장 — Export/Import 액션 등록
+const _origAct=act;
+act=function(a,d){
+  if(a==="v28Exp"){v28Export();return;}
+  if(a==="v28Imp"){v28Import();return;}
+  return _origAct.apply(this,arguments);
+};
+
+// 데이터 변경 시 GS/GE 자동 재계산을 R() 안에서 호출되도록 hook
+const _origR2=R;R=function(){v28RecalcRange();_origR2.apply(this,arguments);};
+
+// v28.1: 윈도우 리사이즈 시 반응형 재계산 (디바운스 100ms)
+let v28ResizeTimer=null;
+window.addEventListener("resize",()=>{
+  clearTimeout(v28ResizeTimer);
+  v28ResizeTimer=setTimeout(()=>R(),100);
+});
+
+// ═══════════════════════════════════════════════════════════
+// v28.4: 버그 수정 + UX 개선 (삭제 / 숨김 / 인쇄)
+// ═══════════════════════════════════════════════════════════
+const _origAct4=act;
+act=function(a,d){
+  switch(a){
+    case"v284Print":{
+      // v28.4.46: 즉시 생성 대신 출력 레벨 선택 모달부터 (대단락만/중단락까지/…)
+      if(!S.selproj){alert("프로젝트가 선택되지 않았습니다.");return;}
+      us({expChoose:"pdf"});
+      return;
+    }
+    // v28.4.17: Excel 다운로드
+    case"v284Excel":{
+      if(!S.selproj){alert("프로젝트가 선택되지 않았습니다.");return;}
+      us({expChoose:"excel"});
+      return;
+    }
+    case"clExport":{us({expChoose:null});return;}
+    case"doExport":{
+      const _lv=Number(d.lv);const _t=S.expChoose;
+      us({expChoose:null});
+      if(_genBusy)return;   // 생성 중 중복 클릭 무시
+      _genBusy=true;
+      showGenOverlay(_t==="pdf"
+        ?"PDF 생성 중... 간트 이미지를 그리는 중입니다. 큰 스케줄은 10~20초 걸릴 수 있어요."
+        :"Excel 생성 중... 잠시만 기다려주세요.");
+      setTimeout(async()=>{
+        try{ if(_t==="pdf") await v284GeneratePDF(_lv); else await v284GenerateExcel(_lv); }
+        catch(err){ alert("생성 중 오류: "+(err.message||err)); }
+        finally{ _genBusy=false; hideGenOverlay(); }
+      },60);
+      return;
+    }
+    // v28.4.17: NOTE 편집 모달
+    case"opNoteEdit":{
+      if(!S.selproj){alert("프로젝트를 먼저 선택해주세요.");return;}
+      us({noteEditMod:true});return;
+    }
+    case"clNoteEdit":{us({noteEditMod:false});return;}
+    case"svNoteEdit":{
+      const ta=document.getElementById('noteEditTA');
+      if(!ta||!S.selproj)return;
+      const newNote=ta.value.trim();
+      PROJS=PROJS.map(p=>p.id===S.selproj.id?{...p,customNote:newNote}:p);
+      const updated=PROJS.find(p=>p.id===S.selproj.id);
+      addLog(`📝 NOTE 저장: ${updated.no} (${newNote.length} 자)`,"ok");
+      us({noteEditMod:false,selproj:updated});return;
+    }
+    case"resetNote":{
+      if(!S.selproj)return;
+      if(!confirm("NOTE를 기본값으로 초기화하시겠습니까?"))return;
+      PROJS=PROJS.map(p=>p.id===S.selproj.id?{...p,customNote:""}:p);
+      const updated=PROJS.find(p=>p.id===S.selproj.id);
+      addLog(`🔄 NOTE 기본값 복원: ${updated.no}`,"info");
+      us({noteEditMod:false,selproj:updated});return;
+    }
+  }
+  return _origAct4.apply(this,arguments);
+};
+
+// ═══════════════════════════════════════════════════════════
+// v28.4.17: WBS 일정표 Excel 생성 (단순화 - 병합 최소화)
+// xlsx-js-style 사용 — 셀 색상 + 테두리 + 안정성 우선
+// ═══════════════════════════════════════════════════════════
+async function v284GenerateExcel(maxLv){
+  if(!S.selproj){alert("프로젝트가 선택되지 않았습니다.");return;}
+  const proj=S.selproj;
+  // v28.4.46: 출력 레벨 제한 — 대단락만(0)/중단락까지(1)/소단락까지(2)/전체(99).
+  //   상위 진도율은 wCS()가 전역 WBS로 롤업하므로 하위를 출력에서 빼도 %는 정확.
+  const _mx=(maxLv==null||isNaN(maxLv))?99:Number(maxLv);
+  const projWBS=WBS.filter(w=>w.projId===proj.id&&(w.lv||0)<=_mx);
+  if(projWBS.length===0){alert("이 프로젝트에 WBS 항목이 없습니다.");return;}
+  if(typeof XLSX==="undefined"){alert("Excel 라이브러리 로딩 중입니다.");return;}
+  
+  addLog(`📊 Excel 생성 시작: ${proj.no}`,"info");
+  
+  try{
+    const dates=projWBS.filter(w=>w.s&&w.e).map(w=>[new Date(w.s),new Date(w.e)]);
+    const minDate=dates.length?new Date(Math.min(...dates.map(d=>d[0]))):new Date();
+    const maxDate=dates.length?new Date(Math.max(...dates.map(d=>d[1]))):new Date();
+    const months=[];
+    const cursor=new Date(minDate.getFullYear(),minDate.getMonth(),1);
+    const endCursor=new Date(maxDate.getFullYear(),maxDate.getMonth(),1);
+    while(cursor<=endCursor){months.push({y:cursor.getFullYear(),m:cursor.getMonth()+1});cursor.setMonth(cursor.getMonth()+1);}
+    const dayDivisions=[4,8,12,16,20,24,28,31];
+    // v28.4.30: 월말일을 행마다(월수×8회씩) 재계산하지 않도록 한 번만 계산해 재사용 — 대형 프로젝트 생성속도 개선
+    const monthLastDay=months.map(mo=>new Date(mo.y,mo.m,0).getDate());
+    const today=new Date();today.setHours(0,0,0,0);
+    
+    const fontKR=(opts={})=>({name:"맑은 고딕",sz:9,...opts});
+    const center={horizontal:"center",vertical:"center",wrapText:true};
+    const left={horizontal:"left",vertical:"center",wrapText:true};
+    const thinB={style:"thin",color:{rgb:"888888"}};
+    const mediumB={style:"medium",color:{rgb:"1A1A1A"}};
+    const thickB={style:"thick",color:{rgb:"1A1A1A"}};
+    const border={top:thinB,bottom:thinB,left:thinB,right:thinB};
+    // v28.4.17: 외곽 강한 테두리용 헬퍼
+    const borderWith=(opts={})=>({
+      top:opts.top||thinB,
+      bottom:opts.bottom||thinB,
+      left:opts.left||thinB,
+      right:opts.right||thinB
+    });
+    const grayFill={patternType:"solid",fgColor:{rgb:"F0F0F0"}};
+    const blueFill={patternType:"solid",fgColor:{rgb:"3A7BC9"}};
+    const lightBlueFill={patternType:"solid",fgColor:{rgb:"CFDCEF"}};
+    const yellowFill={patternType:"solid",fgColor:{rgb:"FFF3CD"}};
+    
+    // ─── 컬럼 구조 (단순화: 병합 없는 DESCRIPTION) ───
+    const C_NO=0,C_DESC=1,C_START=2,C_FIN=3,C_PCT=4;
+    const C_MONTH_START=5;
+    const C_REMARK=C_MONTH_START+months.length*8;
+    const C_MEMO=C_REMARK+1;
+    const totalCols=C_MEMO+1;
+
+    // v28.4.31: 특정 날짜가 속한 일자분할 칸의 컬럼 인덱스와 그 칸 안에서의 위치(0~1)를 계산.
+    // 오늘선(todayColInfo)뿐 아니라 EVMS 곡선 도형(v28.4.32)도 이 함수로 각 점의 위치를 구함.
+    function dateColFrac(dateObj){
+      let result=null;
+      months.forEach((mo,mi)=>{
+        const lastDay=monthLastDay[mi];
+        dayDivisions.forEach((d,di)=>{
+          const dEnd=Math.min(d,lastDay);
+          const dStart=Math.min((di===0?1:dayDivisions[di-1]+1),lastDay);
+          const cellStart=new Date(mo.y,mo.m-1,dStart);cellStart.setHours(0,0,0,0);
+          const cellEnd=new Date(mo.y,mo.m-1,dEnd);cellEnd.setHours(23,59,59,999);
+          if(cellStart<=dateObj&&dateObj<=cellEnd){
+            const span=cellEnd-cellStart;
+            result={col:C_MONTH_START+mi*8+di, frac: span>0?(dateObj-cellStart)/span:0};
+          }
+        });
+      });
+      return result;
+    }
+    // 그리드 전체 폭(일자분할 칸 개수) 기준 0~1 정규화 X 좌표. 범위 밖 날짜는 0 또는 1로 clamp.
+    function dateNormX(dateObj){
+      const cf=dateColFrac(dateObj);
+      if(cf) return ((cf.col-C_MONTH_START)+cf.frac)/(months.length*8);
+      const firstDay=new Date(months[0].y,months[0].m-1,1);
+      return dateObj<firstDay?0:1;
+    }
+    const todayColInfo=dateColFrac(today);
+
+    const aoa=[];
+    const styles={};
+    const merges=[];
+    
+    // R1: 타이틀 — v28.4.29 ★ 1+2행 통째 병합 시 좌상단(A1)에 텍스트 + A1 스타일 적용
+    const r1=[];r1[0]="WBS 일정표";
+    aoa.push(r1);
+    styles["A1"]={font:fontKR({sz:24,bold:true,color:{rgb:"1A1A1A"}}),alignment:center};
+    
+    // R2: 빈 행 (1+2행 병합되어 A1이 보임)
+    aoa.push([]);
+    
+    // 1행+2행 통째 세로*가로 병합 (단일 큰 영역)
+    merges.push({s:{r:0,c:0},e:{r:1,c:totalCols-1}});
+    
+    // R3: CLIENT — v28.4.28 ② 진짜 빈 셀 (Array(N).fill("") 금지!) + ③ 우측은 마지막 컬럼
+    // 핵심: 배열 인덱스로 sparse array 만들기 - 값 없는 셀은 진짜 비어있음
+    const rightInfoCol=totalCols-1;  // ③ CY (마지막 컬럼)
+    const r3=[];
+    r3[0]=`CLIENT : ${proj.client||"-"}`;
+    r3[rightInfoCol]=`PM : ${proj.pm||"-"}`;
+    aoa.push(r3);
+    styles["A3"]={font:fontKR({bold:true,sz:10})};
+    styles[XLSX.utils.encode_cell({r:2,c:rightInfoCol})]={font:fontKR({bold:true,sz:10}),alignment:{horizontal:"right"}};
+    
+    // R4: PROJECT
+    const r4=[];
+    r4[0]=`PROJECT : ${proj.name}`;
+    r4[rightInfoCol]=`Project No. : ${proj.no}`;
+    aoa.push(r4);
+    styles["A4"]={font:fontKR({bold:true,sz:11})};
+    styles[XLSX.utils.encode_cell({r:3,c:rightInfoCol})]={font:fontKR({bold:true,sz:10}),alignment:{horizontal:"right"}};
+    
+    // R5: DATE / 작성 / 공기
+    const r5=[];
+    const todayKr=new Date().toLocaleDateString('ko-KR',{year:'numeric',month:'2-digit',day:'2-digit'}).replace(/\.\s/g,'.').replace(/\.$/,'');
+    r5[0]=`DATE : ${todayKr} (REV. ${_wbsRev||0})`;
+    const finishDate=projWBS.filter(w=>w.e).map(w=>w.e).sort().reverse()[0]||"";
+    r5[rightInfoCol]=`CONSTRUCTION PERIOD : ~ ${finishDate}`;
+    aoa.push(r5);
+    styles["A5"]={font:fontKR({bold:true,sz:10})};
+    styles[XLSX.utils.encode_cell({r:4,c:rightInfoCol})]={font:fontKR({bold:true,sz:10}),alignment:{horizontal:"right"}};
+    
+    aoa.push([]);  // R6 빈
+    
+    // R7: 컬럼 헤더
+    const r7=Array(totalCols).fill("");
+    r7[C_NO]="NO";r7[C_DESC]="DESCRIPTION";r7[C_START]="START";r7[C_FIN]="FINISH";r7[C_PCT]="진척률";
+    months.forEach((mo,mi)=>{r7[C_MONTH_START+mi*8]=`${mo.y}년 ${String(mo.m).padStart(2,'0')}월`;});
+    r7[C_REMARK]="REMARK";r7[C_MEMO]="메모";
+    aoa.push(r7);
+    
+    // R8: 일자 헤더 — 마지막 칸은 해당 월의 실제 마지막일(28/29/30/31)로 표시
+    const r8=Array(totalCols).fill("");
+    months.forEach((mo,mi)=>{
+      const lastDay=monthLastDay[mi];
+      dayDivisions.forEach((d,di)=>{r8[C_MONTH_START+mi*8+di]=Math.min(d,lastDay);});
+    });
+    aoa.push(r8);
+    
+    // 헤더 스타일 — v28.4.17: 위/아래 medium 외곽
+    const hdrTopBorder={top:mediumB,bottom:mediumB,left:thinB,right:thinB};
+    const hdrTopLeftBorder={top:mediumB,bottom:mediumB,left:mediumB,right:thinB};
+    const hdrTopRightBorder={top:mediumB,bottom:mediumB,left:thinB,right:mediumB};
+    const hdrStyle={font:fontKR({bold:true}),alignment:center,fill:grayFill,border:hdrTopBorder};
+    // C_NO은 좌측 외곽, C_MEMO는 우측 외곽
+    styles[XLSX.utils.encode_cell({r:6,c:C_NO})]={...hdrStyle,border:hdrTopLeftBorder};
+    styles[XLSX.utils.encode_cell({r:7,c:C_NO})]={...hdrStyle,border:hdrTopLeftBorder};
+    merges.push({s:{r:6,c:C_NO},e:{r:7,c:C_NO}});
+    [C_DESC,C_START,C_FIN,C_PCT,C_REMARK].forEach(c=>{
+      styles[XLSX.utils.encode_cell({r:6,c:c})]=hdrStyle;
+      styles[XLSX.utils.encode_cell({r:7,c:c})]={...hdrStyle};
+      merges.push({s:{r:6,c:c},e:{r:7,c:c}});
+    });
+    styles[XLSX.utils.encode_cell({r:6,c:C_MEMO})]={...hdrStyle,border:hdrTopRightBorder};
+    styles[XLSX.utils.encode_cell({r:7,c:C_MEMO})]={...hdrStyle,border:hdrTopRightBorder};
+    merges.push({s:{r:6,c:C_MEMO},e:{r:7,c:C_MEMO}});
+    // 월 헤더 8칸 병합
+    months.forEach((mo,mi)=>{
+      const sc=C_MONTH_START+mi*8;
+      const ec=sc+7;
+      styles[XLSX.utils.encode_cell({r:6,c:sc})]={...hdrStyle};
+      for(let c=sc+1;c<=ec;c++){
+        styles[XLSX.utils.encode_cell({r:6,c:c})]={fill:grayFill,border:hdrTopBorder};
+      }
+      merges.push({s:{r:6,c:sc},e:{r:6,c:ec}});
+      dayDivisions.forEach((d,di)=>{
+        styles[XLSX.utils.encode_cell({r:7,c:sc+di})]={font:fontKR({sz:8,bold:true,color:{rgb:"444444"}}),alignment:center,fill:grayFill,border:hdrTopBorder};
+      });
+    });
+    
+    // WBS 데이터 행
+    projWBS.forEach((w,idx)=>{
+      const{pct,status}=wCS(w);
+      const fillPct=pct==null?0:pct;
+      const isMain=w.lv===0;
+      const r=8+idx;
+      
+      const row=Array(totalCols).fill("");
+      row[C_NO]=isMain?(w.code||(idx+1)):"";
+      row[C_DESC]=isMain?w.name:(w.lv===1?`    ${w.code} ${w.name}`:`        - ${w.name}`);
+      row[C_START]=w.s||"";
+      row[C_FIN]=w.e||"";
+      row[C_PCT]=`${fillPct}%`;
+      row[C_REMARK]=w.vendor||"";
+      row[C_MEMO]=w.memo||"";
+      
+      // 마일스톤 셀에 ◆
+      if(w.s&&w.e){
+        const wEnd=new Date(w.e);
+        months.forEach((mo,mi)=>{
+          const lastDay=monthLastDay[mi];
+          dayDivisions.forEach((d,di)=>{
+            const c=C_MONTH_START+mi*8+di;
+            const cellDate=new Date(mo.y,mo.m-1,Math.min(d,lastDay));
+            cellDate.setHours(0,0,0,0);
+            const isMilestone=isMain&&Math.abs((cellDate-wEnd)/(1000*60*60*24))<3;
+            if(isMilestone)row[c]="◆";
+          });
+        });
+      }
+      aoa.push(row);
+      
+      // v28.4.17: 행마다 테두리 결정 (외곽 + 그룹 구분)
+      // 다음 행이 대단락이면 이 행은 그룹 끝 → 아래 굵은 선
+      const nextW=projWBS[idx+1];
+      const isLastInGroup=!nextW||nextW.lv===0;  // 다음이 대단락(또는 끝)이면 이 행이 그룹 끝
+      const isLastRow=idx===projWBS.length-1;
+      const isFirstRow=idx===0;
+      // 각 위치별 테두리
+      const bTop=isFirstRow?mediumB:thinB;
+      const bBottom=isLastRow?mediumB:(isLastInGroup?mediumB:thinB);
+      const rowBorder=(leftB,rightB)=>({top:bTop,bottom:bBottom,left:leftB,right:rightB});
+      const leftEdgeB=mediumB;  // 표 왼쪽 외곽
+      const rightEdgeB=mediumB; // 표 오른쪽 외곽
+      
+      // 셀 스타일 (외곽 + 그룹 구분 반영)
+      styles[XLSX.utils.encode_cell({r:r,c:C_NO})]={font:fontKR({bold:true,color:{rgb:"4A7FC1"}}),alignment:center,border:rowBorder(leftEdgeB,thinB)};
+      styles[XLSX.utils.encode_cell({r:r,c:C_DESC})]={font:fontKR({sz:isMain?10:9,bold:w.lv<=1,color:{rgb:"1A1A1A"}}),alignment:left,border:rowBorder(thinB,thinB),fill:isMain?{patternType:"solid",fgColor:{rgb:"F8FAFC"}}:undefined};
+      styles[XLSX.utils.encode_cell({r:r,c:C_START})]={font:fontKR({sz:8,color:{rgb:"333333"}}),alignment:center,border:rowBorder(thinB,thinB)};
+      styles[XLSX.utils.encode_cell({r:r,c:C_FIN})]={font:fontKR({sz:8,color:{rgb:"333333"}}),alignment:center,border:rowBorder(thinB,thinB)};
+      styles[XLSX.utils.encode_cell({r:r,c:C_PCT})]={font:fontKR({sz:9,bold:fillPct>0,color:{rgb:fillPct>0?"3A7BC9":"6B7280"}}),alignment:center,border:rowBorder(thinB,mediumB)};
+      
+      // 막대 셀 색칠
+      if(w.s&&w.e){
+        const wStart=new Date(w.s);
+        const wEnd=new Date(w.e);
+        const totalMs=wEnd-wStart;
+        const progressEnd=new Date(wStart.getTime()+totalMs*fillPct/100);
+        months.forEach((mo,mi)=>{
+          const lastDay=monthLastDay[mi];
+          dayDivisions.forEach((d,di)=>{
+            const c=C_MONTH_START+mi*8+di;
+            const dEnd=Math.min(d,lastDay);
+            const dStart=Math.min((di===0?1:dayDivisions[di-1]+1),lastDay);
+            const cellStart=new Date(mo.y,mo.m-1,dStart);cellStart.setHours(0,0,0,0);
+            const cellEnd=new Date(mo.y,mo.m-1,dEnd);cellEnd.setHours(23,59,59,999);
+            const cellDate=cellEnd; // 마일스톤/투데이 비교 기준 (셀 끝일)
+            const inBar=cellEnd>=wStart&&cellStart<=wEnd;   // 막대구간↔셀구간 겹치면 칠함 (단일일도 최소 1칸)
+            const inProgress=inBar&&cellStart<=progressEnd;
+            const isMilestone=isMain&&Math.abs((cellDate-wEnd)/(1000*60*60*24))<3;
+
+            let cs={border:rowBorder(thinB,thinB),alignment:center};
+            if(isMilestone){
+              cs.font=fontKR({sz:12,bold:true,color:{rgb:"DC2626"}});
+              cs.fill=yellowFill;
+            }else if(inProgress){
+              cs.fill=blueFill;
+            }else if(inBar){
+              cs.fill=lightBlueFill;
+            }
+            // v28.4.31: 오늘 표시는 셀 테두리 대신 실제 도형(세로선)으로 그림 (todayColInfo, 함수 하단 참조)
+            styles[XLSX.utils.encode_cell({r:r,c:c})]=cs;
+          });
+        });
+      }else{
+        for(let c=C_MONTH_START;c<C_REMARK;c++){
+          styles[XLSX.utils.encode_cell({r:r,c:c})]={border:rowBorder(thinB,thinB)};
+        }
+      }
+      
+      styles[XLSX.utils.encode_cell({r:r,c:C_REMARK})]={font:fontKR({bold:true,color:{rgb:"1E40AF"}}),alignment:center,border:rowBorder(mediumB,thinB)};
+      styles[XLSX.utils.encode_cell({r:r,c:C_MEMO})]={font:fontKR({color:{rgb:"1E40AF"}}),alignment:left,border:rowBorder(thinB,rightEdgeB)};
+    });
+    
+    // NOTE 영역 — v28.4.28 ④ 진짜 빈 셀 (sparse array) 사용
+    const dataEnd=8+projWBS.length;
+    aoa.push([]);  // 빈 행 1개만
+    const noteHdrR=dataEnd+1;
+    const noteHdr=[];
+    noteHdr[0]="NOTE :";
+    aoa.push(noteHdr);
+    styles[XLSX.utils.encode_cell({r:noteHdrR,c:0})]={font:fontKR({bold:true,sz:11})};
+    
+    // NOTE 본문 — sparse array (B열 등 진짜 비어있음 → 자동 오버플로 표시)
+    const noteText=proj.customNote||`본 일정은 ${proj.name}의 작성 시점 기준 일정이며, 작업 변수에 따라 변경될 수 있다.\n일정 변경 시 관계자와 협의 후 변경한다.`;
+    const noteLines=noteText.split('\n');
+    noteLines.forEach((ln,ni)=>{
+      const r=noteHdrR+1+ni;
+      const row=[];
+      row[0]=`  *  ${ln.trim()}`;
+      aoa.push(row);
+      styles[XLSX.utils.encode_cell({r:r,c:0})]={font:fontKR({sz:9})};
+    });
+    
+    // 범례 — v28.4.28 sparse array
+    const legR=noteHdrR+1+noteLines.length+1;
+    aoa.push([]);
+    const legRow=[];
+    legRow[0]="범례:  ▓ = 진척 완료    ░ = 계획    | = 오늘 날짜    ◆ = 마일스톤";
+    aoa.push(legRow);
+    styles[XLSX.utils.encode_cell({r:legR,c:0})]={font:fontKR({bold:true,sz:9})};
+    
+    // 푸터 — v28.4.28 sparse array
+    aoa.push([]);
+    const footR=legR+2;
+    const footRow=[];
+    footRow[0]=`WBS 일정표 템플릿 · © 2026 crazy4eu (cwkim83)          생성: ${todayKr}`;
+    aoa.push(footRow);
+    styles[XLSX.utils.encode_cell({r:footR,c:0})]={font:fontKR({sz:8,color:{rgb:"888888"}})};
+    
+    // v28.4.27 ⑥ 외곽 두꺼운 테두리 — R1 ~ footR, C0 ~ totalCols-1
+    // 외곽 네 변에만 thick border 적용
+    const totalRows=footR+1;  // 마지막 행 (0-based 인덱스 기준 행 수)
+    for(let r=0;r<totalRows;r++){
+      for(let c=0;c<totalCols;c++){
+        const isTop=r===0;
+        const isBottom=r===totalRows-1;
+        const isLeft=c===0;
+        const isRight=c===totalCols-1;
+        if(!(isTop||isBottom||isLeft||isRight))continue;
+        const ref=XLSX.utils.encode_cell({r:r,c:c});
+        const existing=styles[ref]||{};
+        const existingBorder=existing.border||{};
+        styles[ref]={
+          ...existing,
+          border:{
+            top:isTop?thickB:(existingBorder.top||undefined),
+            bottom:isBottom?thickB:(existingBorder.bottom||undefined),
+            left:isLeft?thickB:(existingBorder.left||undefined),
+            right:isRight?thickB:(existingBorder.right||undefined)
+          }
+        };
+      }
+    }
+    
+    // ═══ EVMS (획득가치관리) 요약 — PDF/화면과 동일 지표 ═══
+    try{
+    const _Ex=evmsCalc(proj.id);
+    // v28.4.35: rowBorder()는 앞의 projWBS.forEach 루프 안에서만 정의되는 지역함수라
+    // 여기서 부르면 ReferenceError로 매번 조용히 실패했음(EVMS 요약 테두리가 항상 안 먹힘).
+    const evBorder={top:thinB,bottom:thinB,left:thinB,right:thinB};
+    let evR=aoa.length;
+    aoa.push([]); evR++;
+    const _eh=[]; _eh[0]="■ EVMS (획득가치관리) 요약"; aoa.push(_eh);
+    styles[XLSX.utils.encode_cell({r:evR,c:0})]={font:fontKR({bold:true,sz:11,color:{rgb:"1E40AF"}})}; evR++;
+    aoa.push(["계획 PV",_Ex.pv+"%","실행 EV",_Ex.ev+"%","일정차이 SV",(_Ex.sv>=0?"+":"")+_Ex.sv+"%p","일정성과 SPI",(_Ex.spi==null?"-":_Ex.spi)]);
+    [0,2,4,6].forEach(c=>styles[XLSX.utils.encode_cell({r:evR,c})]={font:fontKR({bold:true,sz:9,color:{rgb:"6B7280"}})});
+    [1,3,5,7].forEach(c=>styles[XLSX.utils.encode_cell({r:evR,c})]={font:fontKR({bold:true,sz:10})});
+    evR++;
+    aoa.push([]); evR++;
+    aoa.push(["코드","대단락","가중치","계획 PV","실행 EV","SV","SPI"]);
+    for(let c=0;c<7;c++)styles[XLSX.utils.encode_cell({r:evR,c})]={font:fontKR({bold:true,sz:9}),fill:{fgColor:{rgb:"F0F3F8"}},border:evBorder,alignment:center};
+    evR++;
+    _Ex.rows.forEach(rr=>{
+      aoa.push([rr.code,rr.name,rr.wt+"%",(rr.pv==null?"-":rr.pv+"%"),rr.ev+"%",(rr.sv>=0?"+":"")+rr.sv+"%p",(rr.spi==null?"-":rr.spi)]);
+      for(let c=0;c<7;c++)styles[XLSX.utils.encode_cell({r:evR,c})]={font:fontKR({sz:9}),border:evBorder,alignment:c===1?left:center};
+      evR++;
+    });
+    aoa.push([]); evR++;
+    aoa.push(["월별 누적 계획(PV%)"].concat(_Ex.curve.map(p=>p.label)));
+    styles[XLSX.utils.encode_cell({r:evR,c:0})]={font:fontKR({bold:true,sz:9})}; evR++;
+    aoa.push(["PV%"].concat(_Ex.curve.map(p=>p.pv)));
+    styles[XLSX.utils.encode_cell({r:evR,c:0})]={font:fontKR({bold:true,sz:9,color:{rgb:"1D4ED8"}})}; evR++;
+    aoa.push(["EV%"].concat(_Ex.curve.map((p,j)=>j===_Ex.curve.length-1?_Ex.ev:"")));
+    styles[XLSX.utils.encode_cell({r:evR,c:0})]={font:fontKR({bold:true,sz:9,color:{rgb:"16A34A"}})}; evR++;
+    // 미니 S-Curve (셀 음영 — PV 누적 영역, 곡선 시각화)
+    aoa.push([]); evR++;
+    aoa.push(["■ S-Curve (PV 누적, 셀 음영)"].concat(_Ex.curve.map(p=>p.label)));
+    styles[XLSX.utils.encode_cell({r:evR,c:0})]={font:fontKR({bold:true,sz:9})};
+    for(let c=0;c<_Ex.curve.length;c++)styles[XLSX.utils.encode_cell({r:evR,c:c+1})]={font:fontKR({sz:7,color:{rgb:"6B7280"}}),alignment:{horizontal:"center"}};
+    evR++;
+    [100,90,80,70,60,50,40,30,20,10].forEach(L=>{
+      const row=[L+"%"]; _Ex.curve.forEach(()=>row.push(""));
+      aoa.push(row);
+      styles[XLSX.utils.encode_cell({r:evR,c:0})]={font:fontKR({sz:8,color:{rgb:"9CA3AF"}}),alignment:{horizontal:"right"}};
+      _Ex.curve.forEach((p,j)=>{ if(p.pv>=L-5) styles[XLSX.utils.encode_cell({r:evR,c:j+1})]={fill:{fgColor:{rgb:"1D4ED8"}}}; });
+      evR++;
+    });
+    }catch(e){console.warn('EVMS Excel skip',e);}
+
+    // 시트 변환
+    const ws=XLSX.utils.aoa_to_sheet(aoa);
+    
+    // 스타일 적용
+    Object.keys(styles).forEach(ref=>{
+      if(!ws[ref])ws[ref]={t:"s",v:""};
+      ws[ref].s=styles[ref];
+    });
+    
+    // v28.4.27 ⑥ 인쇄 영역 — A1 ~ 마지막 셀 (예: A1:CY47)
+    // v28.4.35: EVMS 요약이 totalRows 계산 이후에 aoa에 추가되므로, 실제 마지막 행은
+    // aoa.length 기준으로 잡아야 함(안 그러면 EVMS 요약이 인쇄영역 밖으로 잘림)
+    const finalRowCount=Math.max(totalRows,aoa.length);
+    const printEndRef=XLSX.utils.encode_cell({r:finalRowCount-1,c:totalCols-1});
+    ws['!ref']=`A1:${printEndRef}`;
+    // 인쇄 설정: 한 페이지에 가로 맞춤
+    ws['!pageSetup']={
+      orientation:'landscape',
+      paperSize:8,  // A3
+      fitToWidth:1,
+      fitToHeight:0,  // 가로만 1페이지, 세로는 자유
+      scale:80
+    };
+    ws['!printOptions']={horizontalCentered:true,verticalCentered:false};
+    ws['!margins']={left:0.3,right:0.3,top:0.4,bottom:0.4,header:0.2,footer:0.2};
+    // 인쇄 영역 명시
+    // 인쇄 영역 명시는 wb 선언 후 (아래에서)
+    
+    // 컬럼 너비 — DESCRIPTION을 넓게 (병합 없음)
+    const colWidths=[];
+    colWidths.push({wch:5});
+    colWidths.push({wch:44});  // DESCRIPTION (줄바꿈 방지 — 넉넉히)
+    colWidths.push({wch:12});
+    colWidths.push({wch:12});
+    colWidths.push({wch:7});
+    for(let i=0;i<months.length*8;i++)colWidths.push({wch:3.2});
+    colWidths.push({wch:18});
+    colWidths.push({wch:32});
+    ws['!cols']=colWidths;
+    
+    ws['!rows']=[{hpt:20},{hpt:30},{hpt:16},{hpt:16},{hpt:16},{hpt:6},{hpt:22},{hpt:18}];
+    for(let i=0;i<projWBS.length;i++)ws['!rows'].push({hpt:22});
+    
+    ws['!merges']=merges;
+    
+    const wb=XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb,ws,"WBS 일정표");
+    
+    // v28.4.27 ⑥ 인쇄 영역 정의 (Workbook 레벨)
+    wb.Workbook=wb.Workbook||{};
+    wb.Workbook.Names=wb.Workbook.Names||[];
+    wb.Workbook.Names.push({
+      Name:'_xlnm.Print_Area',
+      Ref:`'WBS 일정표'!$A$1:$${XLSX.utils.encode_col(totalCols-1)}$${finalRowCount}`,
+      Sheet:0
+    });
+    
+    const todayStrFile=new Date().toISOString().slice(0,10).replace(/-/g,'');
+    const _lvSfx=_mx>=99?"":({0:"대단락",1:"중단락까지",2:"소단락까지"}[_mx]||"")+"_";const fileName=`${_fnBase()}_${_lvSfx}${todayStrFile}.xlsx`;
+
+    // v28.4.31: 오늘 날짜를 셀 테두리가 아닌 실제 도형(가는 세로선)으로 정확히 그리기 위해
+    // xlsx(zip) 파일을 직접 후처리해 DrawingML(xdr:sp) 도형을 삽입.
+    // twoCellAnchor로 열 인덱스에 앵커링하면 Excel이 !cols에 설정한 실제 폭으로 위치를 계산해주므로
+    // 앞선 컬럼들의 누적폭은 신경 쓸 필요 없고, 대상 칸 안에서의 오프셋(colOffEmu)만 정확하면 됨.
+    // wchToPx 계수(×7+6)는 Excel COM 자동화로 실측 검증한 값(wch 3.2/5/44 3개 지점 모두 정확히 일치).
+    // v28.4.32: PDF의 EVMS S-Curve(파란 PV/초록 EV 꺾은선)를 Excel에도 동일하게 그림.
+    // custGeom(자유도형)으로 다각선을 그리고, 좌표는 dateNormX()로 그리드 칸 위치와 정확히 맞춤.
+    let curveShapesXml='';
+    try{
+      const _ExCurve=evmsCalc(proj.id);
+      if(_ExCurve.sMin&&_ExCurve.eMax&&_ExCurve.curve.length){
+        const curveRowStart=8, curveRowEnd=8+projWBS.length;
+        const toPt=(normX,pct)=>`<a:pt x="${Math.round(Math.max(0,Math.min(1,normX))*100000)}" y="${Math.round((100-pct)/100*100000)}"/>`;
+        const pvPts=[toPt(dateNormX(new Date(_ExCurve.sMin)),0)].concat(_ExCurve.curve.map(p=>toPt(dateNormX(new Date(p.date)),p.pv)));
+        const pvPath=`<a:path w="100000" h="100000"><a:moveTo>${pvPts[0]}</a:moveTo>${pvPts.slice(1).map(pt=>`<a:lnTo>${pt}</a:lnTo>`).join('')}</a:path>`;
+        const curveShape=(id,name,color,path)=>`<xdr:twoCellAnchor editAs="absolute">
+<xdr:from><xdr:col>${C_MONTH_START}</xdr:col><xdr:colOff>0</xdr:colOff><xdr:row>${curveRowStart}</xdr:row><xdr:rowOff>0</xdr:rowOff></xdr:from>
+<xdr:to><xdr:col>${C_REMARK}</xdr:col><xdr:colOff>0</xdr:colOff><xdr:row>${curveRowEnd}</xdr:row><xdr:rowOff>0</xdr:rowOff></xdr:to>
+<xdr:sp macro="" textlink="">
+<xdr:nvSpPr><xdr:cNvPr id="${id}" name="${name}"/><xdr:cNvSpPr/></xdr:nvSpPr>
+<xdr:spPr>
+<a:xfrm><a:off x="0" y="0"/><a:ext cx="0" cy="0"/></a:xfrm>
+<a:custGeom><a:avLst/><a:gdLst/><a:ahLst/><a:cxnLst/><a:rect l="0" t="0" r="0" b="0"/><a:pathLst>${path}</a:pathLst></a:custGeom>
+<a:noFill/>
+<a:ln w="19050"><a:solidFill><a:srgbClr val="${color}"/></a:solidFill></a:ln>
+</xdr:spPr>
+<xdr:txBody><a:bodyPr/><a:lstStyle/><a:p/></xdr:txBody>
+</xdr:sp>
+<xdr:clientData/>
+</xdr:twoCellAnchor>`;
+        curveShapesXml=curveShape(3,'EVMS_PV_Curve','1D4ED8',pvPath);
+        const todayInRange=today>=new Date(_ExCurve.sMin)&&today<=new Date(_ExCurve.eMax);
+        if(todayInRange){
+          const evPath=`<a:path w="100000" h="100000"><a:moveTo>${toPt(dateNormX(new Date(_ExCurve.sMin)),0)}</a:moveTo><a:lnTo>${toPt(dateNormX(today),_ExCurve.ev)}</a:lnTo></a:path>`;
+          curveShapesXml+=curveShape(4,'EVMS_EV_Curve','16A34A',evPath);
+        }
+      }
+    }catch(e){console.warn('[WBS] EVMS 곡선 도형 생성 실패:',e);}
+
+    let wroteWithLine=false;
+    if((todayColInfo||curveShapesXml) && typeof JSZip!=="undefined"){
+      try{
+        const buf=XLSX.write(wb,{type:'array',bookType:'xlsx'});
+        const zip=await JSZip.loadAsync(buf);
+        const wchToPx=wch=>Math.floor(wch*7+6);
+        const EMU_PER_PX=9525;
+        let todayLineXml='';
+        if(todayColInfo){
+          const colPx=wchToPx(colWidths[todayColInfo.col].wch);
+          const colOffEmu=Math.max(0,Math.min(colPx-2,Math.round(todayColInfo.frac*colPx)))*EMU_PER_PX;
+          const lineWidthEmu=2*EMU_PER_PX;
+          todayLineXml=`<xdr:twoCellAnchor editAs="absolute">
+<xdr:from><xdr:col>${todayColInfo.col}</xdr:col><xdr:colOff>${colOffEmu}</xdr:colOff><xdr:row>0</xdr:row><xdr:rowOff>0</xdr:rowOff></xdr:from>
+<xdr:to><xdr:col>${todayColInfo.col}</xdr:col><xdr:colOff>${colOffEmu+lineWidthEmu}</xdr:colOff><xdr:row>${totalRows}</xdr:row><xdr:rowOff>0</xdr:rowOff></xdr:to>
+<xdr:sp macro="" textlink="">
+<xdr:nvSpPr><xdr:cNvPr id="2" name="TodayLine"/><xdr:cNvSpPr/></xdr:nvSpPr>
+<xdr:spPr>
+<a:xfrm><a:off x="0" y="0"/><a:ext cx="0" cy="0"/></a:xfrm>
+<a:prstGeom prst="rect"><a:avLst/></a:prstGeom>
+<a:solidFill><a:srgbClr val="DC2626"/></a:solidFill>
+<a:ln><a:noFill/></a:ln>
+</xdr:spPr>
+<xdr:txBody><a:bodyPr/><a:lstStyle/><a:p/></xdr:txBody>
+</xdr:sp>
+<xdr:clientData/>
+</xdr:twoCellAnchor>`;
+        }
+        const drawingXml=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<xdr:wsDr xmlns:xdr="http://schemas.openxmlformats.org/drawingml/2006/spreadsheetDrawing" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">
+${todayLineXml}${curveShapesXml}
+</xdr:wsDr>`;
+        zip.file('xl/drawings/drawing1.xml',drawingXml);
+        zip.file('xl/worksheets/_rels/sheet1.xml.rels',`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/drawing" Target="../drawings/drawing1.xml"/></Relationships>`);
+        let ct=await zip.file('[Content_Types].xml').async('string');
+        ct=ct.replace('</Types>','<Override PartName="/xl/drawings/drawing1.xml" ContentType="application/vnd.openxmlformats-officedocument.drawing+xml"/></Types>');
+        zip.file('[Content_Types].xml',ct);
+        let sheetXml=await zip.file('xl/worksheets/sheet1.xml').async('string');
+        sheetXml=sheetXml.replace('</worksheet>','<drawing r:id="rId1"/></worksheet>');
+        zip.file('xl/worksheets/sheet1.xml',sheetXml);
+        const outBlob=await zip.generateAsync({type:'blob',mimeType:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+        const a=document.createElement('a');
+        const url=URL.createObjectURL(outBlob);
+        a.href=url;a.download=fileName;document.body.appendChild(a);a.click();
+        setTimeout(()=>{document.body.removeChild(a);URL.revokeObjectURL(url);},1000);
+        wroteWithLine=true;
+      }catch(e){
+        console.warn('[WBS] 오늘선 도형 삽입 실패, 기본 방식으로 저장:',e);
+      }
+    }
+    if(!wroteWithLine) XLSX.writeFile(wb,fileName);
+
+    addLog(`✅ Excel 다운로드 완료: ${fileName}`,"ok");
+  }catch(e){
+    console.error("Excel 생성 오류:",e);
+    alert("Excel 생성 중 오류:\n"+(e.message||""));
+    addLog(`❌ Excel 실패: ${e.message}`,"err");
+  }
+}
+
+// PDF 생성 — html2canvas + jsPDF (A3 가로)
+async function v284GeneratePDF(maxLv){
+  if(!S.selproj){alert("프로젝트가 선택되지 않았습니다.");return;}
+  
+  const proj=S.selproj;
+  // v28.4.46: 출력 레벨 제한 (Excel과 동일)
+  const _mx=(maxLv==null||isNaN(maxLv))?99:Number(maxLv);
+  const projWBS=WBS.filter(w=>w.projId===proj.id&&(w.lv||0)<=_mx);
+  if(projWBS.length===0){alert("이 프로젝트에 WBS 항목이 없습니다.");return;}
+  
+  if(typeof window.jspdf==="undefined"||typeof window.html2canvas==="undefined"){
+    alert("PDF 라이브러리 로딩 중입니다. 잠시 후 다시 시도해주세요.\n(인터넷 연결을 확인하세요)");
+    return;
+  }
+  
+  addLog(`📄 PDF 생성 시작: ${proj.no}`,"info");
+  
+  // 임시 PDF 컨테이너 생성 (오프스크린)
+  const pdfContainer=document.createElement('div');
+  pdfContainer.id='v284-pdf-container';
+  pdfContainer.style.cssText='position:absolute;left:-9999px;top:0;width:1600px;background:#fff;padding:0;font-family:"Malgun Gothic","맑은 고딕",sans-serif';
+  
+  // 일정 범위 계산
+  const dates=projWBS.filter(w=>w.s&&w.e).map(w=>[new Date(w.s),new Date(w.e)]);
+  const allStarts=dates.map(d=>d[0]);
+  const allEnds=dates.map(d=>d[1]);
+  const minDate=allStarts.length?new Date(Math.min(...allStarts)):new Date();
+  const maxDate=allEnds.length?new Date(Math.max(...allEnds)):new Date();
+  
+  // 월 단위 헤더 (회사 양식은 월별로 4·8·12·16·20·24·28·31 8칸씩)
+  const months=[];
+  const cursor=new Date(minDate.getFullYear(),minDate.getMonth(),1);
+  const endCursor=new Date(maxDate.getFullYear(),maxDate.getMonth(),1);
+  while(cursor<=endCursor){
+    months.push({y:cursor.getFullYear(),m:cursor.getMonth()+1});
+    cursor.setMonth(cursor.getMonth()+1);
+  }
+  
+  // 회사 양식: 월별로 8개 일자 컬럼 (4, 8, 12, 16, 20, 24, 28, 31/30/28...)
+  // v28.4.25 ★ 라벨만 동적 - 좌표계는 v28.4.22 방식 유지 (헤더 8칸 균등 + dayPos는 5/4~12/31 기준)
+  function getMonthLastDay(y,m){return new Date(y,m,0).getDate();}
+  
+  // v28.4.30 ★ 헤더/그리드는 "월마다 8칸 균등폭"인데 예전 dayPos()는 실제 경과일수 기준이라
+  // 두 좌표계가 어긋나서(30일짜리 달이 껴있을수록 밀림) 오늘선·막대가 그리드와 안 맞는 버그가 있었음.
+  // → dayPos()도 동일하게 "월 8칸 그리드" 좌표계로 계산해 완전히 일치시킴.
+  const monthIndexOf=(y,m)=>months.findIndex(mo=>mo.y===y&&mo.m===m);
+  const dayPos=d=>{
+    const dt=new Date(d);
+    const y=dt.getFullYear(),m=dt.getMonth()+1,day=dt.getDate();
+    const mi=monthIndexOf(y,m);
+    if(mi<0){
+      const beforeRange=new Date(y,m-1,day)<new Date(months[0].y,months[0].m-1,1);
+      return beforeRange?0:100;
+    }
+    const lastDay=getMonthLastDay(y,m);
+    const edges=[0,4,8,12,16,20,24,28,lastDay];
+    let i=0;while(i<edges.length-1&&day>edges[i+1])i++;
+    const lo=edges[i],hi=edges[i+1];
+    const frac=hi>lo?(day-lo)/(hi-lo):0;
+    const posWithinMonth=(i+frac)/8;
+    return Math.max(0,Math.min(100,(mi+posWithinMonth)/months.length*100));
+  };
+
+  // 오늘 위치
+  const today=new Date();today.setHours(0,0,0,0);
+  const _rangeStartM=months[0],_rangeEndM=months[months.length-1];
+  const rangeStart=new Date(_rangeStartM.y,_rangeStartM.m-1,1);
+  const rangeEnd=new Date(_rangeEndM.y,_rangeEndM.m-1,getMonthLastDay(_rangeEndM.y,_rangeEndM.m),23,59,59,999);
+  const todayPos=(today>=rangeStart&&today<=rangeEnd)?dayPos(today):-1;
+
+  // ═══ EVMS S-Curve (PDF: canvas로 직접 묘화 — 선 굵기 정확, 왜곡 없음) ═══
+  let _pvArr=[], _evArr=[];
+  try{
+    const _Ep=evmsCalc(proj.id);
+    const _sMinP=projWBS.filter(w=>w.s).map(w=>w.s).sort()[0]||"";
+    const _todayP=dayPos(new Date().toISOString().slice(0,10));
+    if(_sMinP)_pvArr.push([dayPos(_sMinP),0]);
+    _Ep.curve.forEach(p=>_pvArr.push([dayPos(p.date),p.pv]));
+    _evArr=[[_sMinP?dayPos(_sMinP):0,0],[_todayP,_Ep.ev]];
+  }catch(e){console.warn('EVMS PDF curve skip',e);}
+  
+  // 헤더 정보
+  const todayStr=new Date().toLocaleDateString('ko-KR',{year:'numeric',month:'2-digit',day:'2-digit'}).replace(/\.\s/g,'.').replace(/\.$/,'');
+  const periodStr=projWBS.length>0?`${projWBS.filter(w=>w.s).map(w=>w.s).sort()[0]||""} ~ ${projWBS.filter(w=>w.e).map(w=>w.e).sort().reverse()[0]||""}`:"";
+  const finishDate=projWBS.filter(w=>w.e).map(w=>w.e).sort().reverse()[0]||"";
+  
+  // WBS 행 HTML — 회사 양식 그대로 (대단락 흰배경/굵음 + 소단락 흰배경 + 들여쓰기 "-")
+  // v28.4.5: 행 단위 빨간선 제거 → 전체 SVG로 EVMS 곡선 그림
+  // 각 행의 진척 X 위치 계산 (막대 시작점 + 막대길이 × 진척률)
+  const rowHeight=30;
+  const evmsPoints=[];  // [{x: 진척%위치, y: 행 인덱스}] EVMS S곡선 그리기용
+  // v28.4.30: 격자선은 모든 행에서 동일한 X 위치라 행마다 반복 생성할 필요가 없음.
+  // 예전엔 행마다 (월수×8)개씩 그려서 대형 프로젝트는 격자선만 수천 개 DOM이 생겨 html2canvas가 느려졌음.
+  // → 표 전체 높이를 덮는 오버레이 하나로 한 번만 그림 (idx===0 행에 배치, overflow:visible로 아래까지 노출).
+  const gridlinesHTML=months.map((mo,mIdx)=>[4,8,12,16,20,24,28,31].map((d,dIdx)=>`<div style="position:absolute;left:${((mIdx*8+dIdx+1)/(months.length*8))*100}%;top:0;bottom:0;width:1px;background:#e8e8e8"></div>`).join('')).join('');
+
+  const wbsRowsHTML=projWBS.map((w,idx)=>{
+    const isMain=w.lv===0;
+    const{pct,status}=wCS(w);
+    const fillPct=pct==null?0:pct;
+    const left=w.s?dayPos(w.s):0;
+    const width=(w.s&&w.e)?dayPos(w.e)-left:5;
+    
+    // v28.4.5: EVMS 곡선용 — 막대 위에서 진척률 위치 (% 좌표)
+    // 막대가 없으면 점도 없음
+    const hasBar=w.s&&w.e;
+    if(hasBar){
+      const progressX=left+(width*fillPct/100);
+      evmsPoints.push({x:progressX,y:idx,fillPct,plannedPct:0,actualPct:fillPct});
+    }
+    
+    // 회사 양식 막대 색: 단일 파랑 (#3a7bc9)
+    const barColor='#3a7bc9';
+    const barBg='#cfdcef';
+    
+    const noText=isMain?(w.code||(idx+1)):'';
+    const descText=isMain?w.name:(w.lv===1?`${w.code} ${w.name}`:`- ${w.name}`);
+    const descStyle=w.lv===0
+      ?'font-size:9pt;font-weight:700;color:#1a1a1a;padding-left:6px'
+      :w.lv===1
+        ?'font-size:8.5pt;font-weight:700;color:#1a1a1a;padding-left:20px'
+        :'font-size:8pt;font-weight:400;color:#333;padding-left:38px';
+    
+    const endLabel=w.e?`~${w.e.slice(5).replace('-','/')}`:'';
+    
+    return `<tr style="height:${rowHeight}px" data-idx="${idx}">
+      <td style="border:1px solid #888;padding:0;text-align:center;font-size:9pt;font-weight:700;color:#1a1a1a;background:#fff;width:36px">${esc(noText)}</td>
+      <td style="border:1px solid #888;padding:3px 0;background:#fff;width:220px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"><span style="${descStyle}">${esc(descText)}</span></td>
+      <td style="border:1px solid #888;padding:2px 4px;text-align:center;font-size:7.5pt;color:#333;background:#fff;width:68px;white-space:nowrap">${esc(w.s||'')}</td>
+      <td style="border:1px solid #888;padding:2px 4px;text-align:center;font-size:7.5pt;color:#333;background:#fff;width:68px;white-space:nowrap">${esc(w.e||'')}</td>
+      <td style="border:1px solid #888;padding:2px;text-align:center;font-size:8pt;color:#1a1a1a;background:#fff;width:44px;font-weight:600">${fillPct}%</td>
+      <td colspan="${months.length*8}" class="v284-gantt-cell" style="border:1px solid #888;padding:0;position:relative;height:${rowHeight}px;background:#fff${idx===0?';overflow:visible':''}">
+        ${idx===0?`<!-- v28.4.30: 격자선/오늘선/TODAY라벨을 표 전체 높이 오버레이로 통합 (행마다 반복 생성 제거 → PDF 생성 속도 개선). 격자선은 막대 뒤(z:1), 오늘선/라벨은 막대 위(z:5)로 분리해 기존 겹침 순서 유지 -->
+        <div style="position:absolute;top:0;left:0;width:100%;height:${projWBS.length*rowHeight}px;z-index:1;pointer-events:none">${gridlinesHTML}</div>
+        ${todayPos>=0?`<div style="position:absolute;top:0;left:0;width:100%;height:${projWBS.length*rowHeight}px;z-index:5;pointer-events:none">
+          <div style="position:absolute;left:${todayPos}%;top:-40px;bottom:0;width:2px;background:#dc2626;margin-left:-1px"></div>
+          <div style="position:absolute;left:${todayPos}%;top:-56px;font-size:8pt;font-weight:700;color:#dc2626;z-index:21;white-space:nowrap">
+            <div style="position:relative">
+              <span style="position:absolute;left:0;top:0;transform:translateX(-50%);font-size:10pt;line-height:1">▼</span>
+              <span style="position:absolute;left:0;top:-10px;transform:translateX(-50%);background:#fff;padding:0 4px;border:1px solid #dc2626;border-radius:3px;font-size:7.5pt">TODAY ${todayStr}</span>
+            </div>
+          </div>
+        </div>`:''}`:''}
+        ${idx===0&&_pvArr.length?`<canvas id="evms-scurve-cv" style="position:absolute;top:0;left:0;width:100%;height:${projWBS.length*rowHeight}px;z-index:4;pointer-events:none"></canvas>`:''}
+        <div class="v284-bar-outer" data-idx="${idx}" data-fillpct="${fillPct}" style="position:absolute;left:${left}%;top:6px;width:${Math.max(width,0.9)}%;height:12px;background:${barBg};border:1px solid ${barColor};box-sizing:border-box;z-index:2">
+          <div class="v284-bar-fill" style="position:absolute;left:0;top:0;width:${fillPct}%;height:100%;background:${barColor}"></div>
+        </div>
+        ${isMain&&w.e?`<div style="position:absolute;left:calc(${left+width}% - 6px);top:3px;width:12px;height:18px;display:flex;align-items:center;justify-content:center;color:#dc2626;font-size:14px;font-weight:700;z-index:6" title="마일스톤">◆</div>`:''}
+        <span style="position:absolute;left:calc(${left+width}% + 9px);top:5px;font-size:7pt;color:#1a1a1a;white-space:nowrap;font-weight:600;background:#fff;padding:0 2px;z-index:3">${esc(endLabel)}</span>
+        ${w.memo?`<div style="position:absolute;left:calc(${left+width/2}% - 70px);top:-14px;font-size:6.5pt;color:#1e40af;background:#eff6ff;border:1px solid #93c5fd;border-radius:2px;padding:1px 4px;white-space:nowrap;max-width:140px;overflow:hidden;text-overflow:ellipsis;z-index:7" title="${w.memo.replace(/"/g,'&quot;')}">${esc(w.memo.slice(0,30))}${w.memo.length>30?'…':''}</div>`:''}
+      </td>
+      <td style="border:1px solid #888;padding:3px 6px;text-align:center;font-size:7.5pt;color:#1a1a1a;background:#fff;width:90px">${w.vendor?`<span style="font-weight:600;color:#1e40af">${esc(w.vendor.slice(0,12))}</span>`:''}</td>
+    </tr>`;
+  }).join("");
+  
+  // 회사 양식 100% 재현 HTML
+  pdfContainer.innerHTML=`
+    <div style="padding:14px 18px;background:#fff;width:1600px;box-sizing:border-box;font-family:'Malgun Gothic','맑은 고딕',sans-serif">
+      
+      <!-- ─── 회사 양식 헤더 (3단 정렬) ─── -->
+      <table style="width:100%;border-collapse:collapse;margin-bottom:10px">
+        <tr>
+          <td style="vertical-align:top;width:32%;font-size:10pt;color:#1a1a1a;line-height:1.5">
+            <div><b>CLIENT</b> : ${esc(proj.client||'-')}</div>
+            <div><b>PROJECT</b> : ${esc(proj.name)}</div>
+            <div style="font-size:9pt;color:#444"><b>DATE</b> : ${todayStr} (REV. ${esc(_wbsRev||0)})</div>
+          </td>
+          <td style="vertical-align:top;text-align:center;width:36%">
+            <div style="font-size:24pt;font-weight:900;color:#1a1a1a;letter-spacing:2px;font-family:Arial,sans-serif">WBS 일정표</div>
+            <div style="height:2px;background:#1a1a1a;margin:2px 60px 0"></div>
+          </td>
+          <td style="vertical-align:top;text-align:right;width:32%;font-size:10pt;color:#1a1a1a;line-height:1.5">
+            <div><b>PM</b> : ${esc(proj.pm||'-')}</div>
+            <div style="font-size:9pt;color:#444">${esc(proj.no)}</div>
+            <div style="font-size:9pt;color:#444;margin-top:6px"><b>CONSTRUCTION PERIOD</b> : ~ "${esc(finishDate)}"</div>
+          </td>
+        </tr>
+      </table>
+      
+      <!-- ─── 메인 표 + 오늘 빨간선 (v28.4.17: 각 행 간트셀에 빨간선 + 첫 행에 TODAY 라벨) ─── -->
+      <div style="position:relative;margin-top:24px">
+        <table id="v284-master-tbl" style="width:100%;border-collapse:collapse;border:1.5px solid #1a1a1a;table-layout:fixed">
+          <thead>
+            <!-- 1행: 컬럼 헤더 + 월 헤더 -->
+            <tr style="height:22px;background:#f0f0f0">
+              <th rowspan="2" style="border:1px solid #888;font-size:9pt;font-weight:700;color:#1a1a1a;padding:2px;width:36px">NO</th>
+              <th rowspan="2" style="border:1px solid #888;font-size:9pt;font-weight:700;color:#1a1a1a;padding:2px;width:220px">DESCRIPTION</th>
+              <th rowspan="2" style="border:1px solid #888;font-size:8pt;font-weight:700;color:#1a1a1a;padding:2px;width:68px">START</th>
+              <th rowspan="2" style="border:1px solid #888;font-size:8pt;font-weight:700;color:#1a1a1a;padding:2px;width:68px">FINISH</th>
+              <th rowspan="2" style="border:1px solid #888;font-size:8pt;font-weight:700;color:#1a1a1a;padding:2px;width:44px">진척</th>
+              ${months.map(mo=>`<th colspan="8" style="border:1px solid #888;font-size:9pt;font-weight:700;color:#1a1a1a;padding:2px;background:#f0f0f0">${mo.y}년 ${String(mo.m).padStart(2,'0')}월</th>`).join('')}
+              <th rowspan="2" style="border:1px solid #888;font-size:8pt;font-weight:700;color:#1a1a1a;padding:2px;width:90px">REMARK<br><span style="font-size:6.5pt;color:#666;font-weight:400">담당 업체</span></th>
+            </tr>
+            <!-- 2행: 일자 헤더 — v28.4.25 균등 8칸 + 마지막 라벨만 월별 실제 마지막일 (30/31/28/29) -->
+            <tr style="height:18px;background:#f0f0f0">
+              ${months.map(mo=>{
+                const lastDay=getMonthLastDay(mo.y,mo.m);
+                // 표준 라벨: 4,8,12,16,20,24,28 + 마지막은 lastDay (31/30/28/29)
+                const labels=[4,8,12,16,20,24,28,lastDay];
+                return labels.map(d=>`<th style="border:1px solid #888;font-size:7pt;font-weight:600;color:#444;padding:1px;min-width:18px">${d}</th>`).join('');
+              }).join('')}
+            </tr>
+          </thead>
+          <tbody id="v284-master-tbody">
+            ${wbsRowsHTML}
+          </tbody>
+        </table>
+      </div>
+      
+      <!-- ─── 하단 NOTE (회사 양식 좌측 정렬 텍스트) — v28.4.17: 프로젝트 customNote 우선 ─── -->
+      <div style="margin-top:14px">
+        <div style="font-size:8.5pt;color:#1a1a1a;line-height:1.6">
+          <div style="font-weight:700;margin-bottom:2px">NOTE :</div>
+          ${proj.customNote?proj.customNote.split('\n').map(ln=>`<div>${esc(ln.trim().startsWith('*')||ln.trim().startsWith('-')||ln.trim().startsWith('•')?ln:('* '+ln))}</div>`).join(''):`<div>* 본 일정은 ${esc(proj.name)}의 작성 시점 기준 일정이며, 작업 변수에 따라 변경될 수 있다.</div>
+          <div>&nbsp;&nbsp;&nbsp;일정 변경 시 관계자와 협의 후 변경한다.</div>`}
+          <div style="margin-top:4px;padding-top:4px;border-top:1px dashed #ccc"><b>범례:</b> 빨간 수직선 = 오늘 날짜 · ◆ = 대단락 마일스톤 · 파란 라벨 = 작업 메모 · REMARK = 담당 업체</div>
+        </div>
+      </div>
+      
+      <!-- ─── 최하단 작은 푸터 ─── -->
+      <div style="margin-top:8px;display:flex;justify-content:space-between;font-size:7pt;color:#888;border-top:1px solid #ccc;padding-top:4px">
+        <span>WBS 일정표 템플릿 · © 2026 crazy4eu (cwkim83)</span>
+        <span>생성: ${todayStr}</span>
+      </div>
+    </div>
+  `;
+  
+  document.body.appendChild(pdfContainer);
+
+  // EVMS S-Curve를 canvas에 직접 묘화 (append 후 실제 픽셀 크기 확보 → 선 굵기 정확)
+  try{
+    const _cv=pdfContainer.querySelector('#evms-scurve-cv');
+    if(_cv&&_pvArr.length){
+      const W=_cv.offsetWidth||_cv.clientWidth||800, H=_cv.offsetHeight||_cv.clientHeight||600;
+      _cv.width=W; _cv.height=H;
+      const ctx=_cv.getContext('2d');
+      const X=x=>x/100*W, Y=p=>H-(p/100*H);
+      const drawLine=(arr,color)=>{ if(arr.length<2)return; ctx.beginPath(); ctx.moveTo(X(arr[0][0]),Y(arr[0][1])); for(let i=1;i<arr.length;i++)ctx.lineTo(X(arr[i][0]),Y(arr[i][1])); ctx.strokeStyle=color; ctx.lineWidth=2; ctx.lineJoin='round'; ctx.stroke(); };
+      drawLine(_pvArr,'#1d4ed8'); drawLine(_evArr,'#16a34a');
+    }
+  }catch(e){console.warn('EVMS canvas draw skip',e);}
+  
+  
+  // 한 박자 쉬고 (SVG 렌더링 보장)
+  await new Promise(r=>setTimeout(r,50));
+  
+  try{
+    // 캡쳐
+    const canvas=await html2canvas(pdfContainer,{
+      scale:1.5,
+      backgroundColor:'#ffffff',
+      logging:false,
+      useCORS:true
+    });
+    
+    // jsPDF — A3 가로
+    const{jsPDF}=window.jspdf;
+    const pdf=new jsPDF({orientation:'landscape',unit:'mm',format:'a3'});
+    
+    const pageWidth=420;
+    const pageHeight=297;
+    const margin=8;
+    const usableWidth=pageWidth-margin*2;
+    const usableHeight=pageHeight-margin*2;
+    
+    const imgWidth=canvas.width;
+    const imgHeight=canvas.height;
+    
+    // v28.4.5: 페이지 분할 — 표 행이 잘리지 않도록 행 단위로 자르기
+    // 그러기 위해 행 위치(픽셀)를 사전에 측정해놓음
+    let drawWidth=usableWidth;
+    let drawHeight=drawWidth*(imgHeight/imgWidth);
+    
+    if(drawHeight<=usableHeight){
+      // 1페이지에 정상 출력
+      pdf.addImage(canvas.toDataURL('image/jpeg',0.95),'JPEG',margin,margin,drawWidth,drawHeight);
+    }else{
+      // ─── 여러 페이지 분할 ───
+      // 각 페이지에 들어갈 캔버스 픽셀 높이 계산
+      const pageImgHeight=Math.floor(usableHeight*(imgWidth/drawWidth));
+      
+      // v28.4.5: 행 단위 자르기 - tbody 내 각 tr의 위치 측정
+      // canvas는 html2canvas scale=1.5라서 픽셀이 1.5배
+      const ctnRect=pdfContainer.getBoundingClientRect();
+      const tbody=document.getElementById('v284-master-tbody');
+      const rows=tbody?tbody.querySelectorAll('tr'):[];
+      // 각 행 끝 Y 위치 (캔버스 픽셀 단위)
+      const scale=1.5;
+      const rowEndsPx=Array.from(rows).map(tr=>{
+        const r=tr.getBoundingClientRect();
+        return Math.round((r.bottom-ctnRect.top)*scale);
+      });
+      
+      let pageNum=1;
+      let sourceY=0;
+      
+      while(sourceY<imgHeight){
+        if(pageNum>1)pdf.addPage();
+        
+        // 이 페이지 끝 = sourceY + pageImgHeight 까지의 행 중 마지막으로 완전히 들어가는 행의 bottom
+        let pageEnd=sourceY+pageImgHeight;
+        // 마지막 행보다 더 가면 끝까지
+        if(pageEnd>=imgHeight){
+          pageEnd=imgHeight;
+        }else{
+          // 행 안에서 잘리지 않게: sourceY ~ pageEnd 사이에 끝나는 행 중 가장 마지막
+          const validRowEnds=rowEndsPx.filter(re=>re>sourceY&&re<=pageEnd);
+          if(validRowEnds.length>0){
+            pageEnd=validRowEnds[validRowEnds.length-1];
+          }
+          // 아무 행도 안 들어가면 그냥 자름 (안전장치)
+        }
+        
+        const sliceHeight=pageEnd-sourceY;
+        const tempCanvas=document.createElement('canvas');
+        tempCanvas.width=imgWidth;
+        tempCanvas.height=sliceHeight;
+        const ctx=tempCanvas.getContext('2d');
+        ctx.fillStyle='#ffffff';
+        ctx.fillRect(0,0,tempCanvas.width,tempCanvas.height);
+        ctx.drawImage(canvas,0,sourceY,imgWidth,sliceHeight,0,0,imgWidth,sliceHeight);
+        
+        const pageDrawHeight=(sliceHeight/imgWidth)*usableWidth;
+        pdf.addImage(tempCanvas.toDataURL('image/jpeg',0.95),'JPEG',margin,margin,usableWidth,pageDrawHeight);
+        pdf.setFontSize(8);pdf.setTextColor(107,114,128);
+        pdf.text(`Page ${pageNum}`,pageWidth-margin,pageHeight-3,{align:'right'});
+        
+        sourceY=pageEnd;
+        pageNum++;
+        
+        // 무한루프 방지
+        if(pageNum>50)break;
+      }
+    }
+    
+    const todayStrFile=new Date().toISOString().slice(0,10).replace(/-/g,'');
+    const _lvSfx=_mx>=99?"":({0:"대단락",1:"중단락까지",2:"소단락까지"}[_mx]||"")+"_";const fileName=`${_fnBase()}_${_lvSfx}${todayStrFile}.pdf`;
+    pdf.save(fileName);
+    
+    addLog(`✅ PDF 생성 완료: ${fileName}`,"ok");
+  }catch(e){
+    console.error("PDF 생성 오류:",e);
+    alert("PDF 생성 중 오류가 발생했습니다.\n"+(e.message||""));
+    addLog(`❌ PDF 생성 실패: ${e.message}`,"err");
+  }finally{
+    if(pdfContainer&&pdfContainer.parentNode){
+      pdfContainer.parentNode.removeChild(pdfContainer);
+    }
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+// 시작 — 데이터 만들기 · 불러오기
+// ═══════════════════════════════════════════════════════════
+function _newProject(id){return{id:id||("p_"+Date.now().toString(36)),no:"",name:"새 프로젝트",client:"",pm:"",customNote:"",createdAt:new Date().toISOString()};}
+// 예시: 가상의 「사무실 이전 프로젝트」 (대단락/중단락/소단락 3단계, 날짜는 오늘 기준으로 상대 계산)
+function _sampleData(){
+  const pid="p_sample";
+  const day=n=>{const t=new Date();t.setDate(t.getDate()+n);return t.getFullYear()+"-"+String(t.getMonth()+1).padStart(2,"0")+"-"+String(t.getDate()).padStart(2,"0");};
+  // [단계, 작업명, 담당, 시작(오늘±일), 완료(오늘±일), 수동 진도율(말단만), 상태, 메모]
+  const T=[
+    [0,"이전 준비","총무팀",-45,-10],
+    [1,"이전 계획 수립","총무팀",-45,-30],
+    [2,"이전 일정·범위 확정","총무팀",-45,-38,100,"완료"],
+    [2,"이전 예산 승인","재무팀",-40,-30,100,"완료"],
+    [1,"신사무실 계약","총무팀",-35,-10],
+    [2,"후보지 답사·비교","총무팀",-35,-25,100,"완료"],
+    [2,"임대차 계약 체결","총무팀",-24,-10,100,"완료"],
+    [0,"인테리어·설비","시설팀",-14,25],
+    [1,"인테리어 공사","시설팀",-14,12],
+    [2,"철거·바닥 공사","시설팀",-14,-1,90,"지연"],
+    [2,"칸막이·조명 설치","시설팀",-3,12,40,"진행중","자재 입고가 하루 늦어짐.\n→ 금요일에 일정 다시 확인"],
+    [1,"IT·통신 설비","IT팀",5,25],
+    [2,"네트워크 배선","IT팀",5,15,0,"미시작"],
+    [2,"전화·보안 설비","IT팀",12,25,0,"미시작"],
+    [0,"이전 실행","총무팀",18,40],
+    [1,"짐 정리·포장","전 직원",18,26],
+    [2,"부서별 짐 분류","전 직원",18,22,0,"미시작"],
+    [2,"포장·라벨 부착","전 직원",21,26,0,"미시작"],
+    [1,"이전 당일","총무팀",28,32],
+    [2,"가구·집기 반입","이사 업체",28,30,0,"미시작"],
+    [2,"장비 설치·동작 점검","IT팀",30,32,0,"미시작"],
+    [1,"사후 점검","총무팀",33,40],
+    [2,"미비 사항 보완","총무팀",33,38,0,"미시작"],
+    [2,"이전 완료 보고","총무팀",38,40,0,"미시작"],
+  ];
+  const cnt=[];
+  const rows=T.map(([lv,name,mgr,a,b,pm,st,memo],i)=>{
+    cnt[lv]=(cnt[lv]||0)+1;cnt.length=lv+1;
+    return{id:"w_sample_"+(i+1),code:cnt.join("."),name,mgr,s:day(a),e:day(b),status:st||"미시작",lv,projId:pid,vendor:"",memo:memo||"",...(pm!=null?{pctManual:pm}:{})};
+  });
+  return{PROJS:[{id:pid,no:"EX-001",name:"사무실 이전 프로젝트",client:"예시 주식회사",pm:"총무팀 담당자",customNote:"",createdAt:new Date().toISOString()}],
+    WBS:rows,MITEM:{},rev:1,evmsBac:{},memoOpen:["w_sample_11"]};
+}
+// 데이터 한 벌을 화면 상태에 올린다 (시작·JSON 불러오기·예시 넣기 공통)
+function _applyData(d){
+  PROJS=d.PROJS;WBS=(d.WBS||[]).map(w=>({...w,lv:w.lv||0}));MITEM=d.MITEM||{};_wbsRev=d.rev||0;
+  _wbsPid=PROJS[0].id;_lastRevSig=null;_lastSavedSig=null;   // 다음 R() 의 저장이 새 기준선을 잡는다
+  _memoOpen={};(d.memoOpen||[]).forEach(id=>{_memoOpen[id]=true;});
+  S={...S,selproj:PROJS[0],wsel:null,wedit:false,evmsBac:d.evmsBac||{}};
+  v28RecalcRange();
+}
+(function initLocal(){
+  const qs=new URLSearchParams(location.search);
+  let d=null;
+  try{
+    const raw=localStorage.getItem(_LS_KEY);
+    if(raw){
+      try{d=JSON.parse(raw);}
+      catch(e){try{localStorage.setItem(_LS_KEY+"_broken_"+Date.now(),raw);}catch(e2){}}   // 깨진 저장분은 덮어쓰기 전에 따로 보관
+    }
+  }catch(e){}
+  if(qs.get("sample")==="1"){_previewOnly=true;d=_sampleData();}   // 예시 미리보기 — 저장하지 않는다
+  if(!d||!Array.isArray(d.PROJS)||!d.PROJS.length)d={PROJS:[_newProject()],WBS:[],MITEM:{},rev:0,evmsBac:{}};
+  _applyData(d);
+  _wbsMasterLoaded=true;   // 여기부터 저장 허용
+  R();
+})();
+</script></body></html>
